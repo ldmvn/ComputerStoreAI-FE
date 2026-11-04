@@ -23,3 +23,5 @@ coverage/
 Thumbs.db
 
 graphify-out/
+
+tsconfig.tsbuildinfo
