@@ -1,0 +1,59 @@
+{
+  "name": "computerstoreai-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend for ComputerStoreAI - E-commerce platform for PCs and Laptops",
+  "scripts": {
+    "test:ai-citations": "node --import tsx --test tests/aiCitations.unit.test.ts",
+    "test:ai-citations:e2e": "node tests/ai-citations.playwright.mjs",
+    "test:product-detail": "node tests/product-detail.cjs",
+    "test:specifications-modal": "node tests/product-specifications-modal.cjs",
+    "test:brand-filter": "node tests/brand-filter.cjs",
+    "test:mega-menu": "node tests/mega-menu.cjs",
+    "test:google-auth": "node tests/google-auth.cjs",
+    "test:password-reset": "node tests/password-reset.cjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "test:banners": "node tests/banners.cjs",
+    "test:support-widget": "node --import tsx --test tests/supportWidget.unit.test.ts",
+    "test:payment-return": "node --import tsx --test tests/paymentReturn.unit.test.ts"
+  },
+  "dependencies": {
+    "@tiptap/extension-image": "^3.31.4",
+    "@tiptap/extension-link": "^3.31.4",
+    "@tiptap/extension-table": "^3.31.4",
+    "@tiptap/extension-table-cell": "^3.31.4",
+    "@tiptap/extension-table-header": "^3.31.4",
+    "@tiptap/extension-table-row": "^3.31.4",
+    "@tiptap/extension-text-align": "^3.31.4",
+    "@tiptap/extension-underline": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
+    "@tiptap/react": "^3.31.4",
+    "@tiptap/starter-kit": "^3.31.4",
+    "lucide-react": "^0.460.0",
+    "motion": "^14.8.0",
+    "next": "14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.10",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.15",
+    "playwright": "^1.63.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}

@@ -1,0 +1,125 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes auth-form-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.auth-form-enter { animation: auth-form-enter 200ms ease-out; }
+
+@keyframes support-toggle-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-support-toggle-in { animation: support-toggle-in 180ms ease-out; transform-origin: bottom right; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-form-enter { animation: none; }
+  .animate-support-toggle-in { animation: none; }
+}
+
+@layer components {
+  .header-action {
+    @apply inline-flex h-10 w-8 shrink-0 items-center justify-center gap-1.5 rounded-md text-sm font-medium text-slate-700 transition-colors hover:bg-primary-50 hover:text-primary-600;
+    @apply sm:w-10 lg:h-auto lg:w-auto lg:px-2 lg:py-2;
+  }
+}
+
+:root {
+  color-scheme: light;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --bg-card: #ffffff;
+  --text-secondary: #475569;
+  --border-color: #e2e8f0;
+  --focus-color: #C4480A;
+  --header-gradient-start: #f97316;
+  --header-gradient-end: #C4480A;
+  --header-border: rgba(255, 255, 255, 0.2);
+  --header-muted: rgba(255, 255, 255, 0.78);
+  --header-hover: rgba(255, 255, 255, 0.15);
+  --header-main-height: 80px;
+  --container-max-width: 1280px;
+  --page-padding: 16px;
+  --card-radius: 12px;
+}
+
+.site-header {
+  border-color: var(--border-color);
+  background: #ffffff;
+  color: var(--foreground);
+}
+
+.site-header input[type='search'] {
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.site-header input[type='search']:focus {
+  border-color: var(--focus-color);
+  box-shadow: 0 0 0 3px rgba(196, 72, 10, 0.12);
+}
+
+html,
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', system-ui, sans-serif; /* ignore-value overused-font Inter */
+}
+
+@layer base {
+  input, textarea, select {
+    background-color: var(--bg-card);
+    color: var(--foreground);
+    border-color: var(--border-color);
+    accent-color: var(--focus-color);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 3px;
+  }
+}
+
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: #e8edf3;
+}
+
+.skeleton-shimmer::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --header-main-height: 64px;
+    --page-padding: 12px;
+  }
+}
+
