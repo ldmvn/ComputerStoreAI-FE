@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, Fragment } from 'react';
 import Image from 'next/image';
-import { Loader2, Search, ChevronLeft, ChevronRight, X, ChevronDown, BadgeCheck, Landmark, Banknote, MoreHorizontal } from 'lucide-react';
+import { Loader2, Search, ChevronLeft, ChevronRight, X, ChevronDown, BadgeCheck, Landmark, MoreHorizontal } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
 import { useAuthStore } from '@/store/auth.store';
@@ -9,7 +9,7 @@ import {
   adminListOrders, adminGetOrderStats, adminUpdateOrderStatus,
   type AdminOrder, type AdminOrderStats,
 } from '@/services/adminSales.service';
-import { adminConfirmPayment, adminConfirmCodPayment, adminConfirmPaymentAndApprove } from '@/services/payment.service';
+import { adminConfirmPayment, adminConfirmPaymentAndApprove } from '@/services/payment.service';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice as fmt } from '@/lib/product';
@@ -237,31 +237,6 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const handleConfirmCod = async (order: AdminOrder) => {
-    const ok = await confirmAction({
-      title: 'Xác nhận đã thu tiền COD',
-      description: [
-        `Mã đơn hàng: #${order.id}`,
-        `Phương thức: ${PAYMENT_METHOD_LABEL[order.paymentMethod] ?? order.paymentMethod}`,
-        `Số tiền: ${fmt(order.payment?.amount ?? (order.subtotal - order.discountAmount))}`,
-        '',
-        '⚠️ Vui lòng kiểm tra thực tế đã thu tiền mặt từ khách trước khi xác nhận. Thao tác này tách biệt với việc xác nhận đơn hàng.',
-      ].join('\n'),
-      confirmLabel: 'Xác nhận đã thu tiền',
-    });
-    if (!ok) return;
-    setActionLoading(order.id);
-    try {
-      const res = await adminConfirmCodPayment(order.id, token);
-      setMessage(res.message);
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Xác nhận thu tiền COD thất bại.');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
   const totalPages = Math.ceil(total / limit);
 
   return (
@@ -374,7 +349,6 @@ export default function AdminOrdersPage() {
                 const canMergeConfirmApprove = order.status === 'PENDING' && order.paymentMethod === 'BANK_TRANSFER' && paymentPendingish;
                 // VietQR: legacy exception — order already moved past PENDING without ever being paid.
                 const canStandaloneConfirmVietQR = order.status !== 'PENDING' && order.status !== 'CANCELLED' && order.paymentMethod === 'BANK_TRANSFER' && paymentPendingish;
-                const canConfirmCod = !!payment && payment.status === 'PENDING' && order.paymentMethod === 'COD';
                 // MoMo/VNPAY unpaid: no action Admin can take — only the payment gateway's IPN can settle it.
                 const awaitingGatewayPayment = order.status === 'PENDING' && (order.paymentMethod === 'MOMO' || order.paymentMethod === 'VNPAY') && !paymentPaid;
 
@@ -446,17 +420,6 @@ export default function AdminOrdersPage() {
                           )}
                           {awaitingGatewayPayment && (
                             <span className="text-xs font-medium italic text-slate-400">Chờ thanh toán</span>
-                          )}
-                          {canConfirmCod && (
-                            <button
-                              type="button"
-                              disabled={actionLoading === order.id}
-                              onClick={() => handleConfirmCod(order)}
-                              className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-                            >
-                              {actionLoading === order.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Banknote className="h-3.5 w-3.5" />}
-                              Đã thu COD
-                            </button>
                           )}
                           {next && (
                             <button
@@ -554,7 +517,7 @@ export default function AdminOrdersPage() {
                                 )}
 
                                 {payment.method === 'COD' && payment.status !== 'PAID' && (
-                                  <p className="text-xs text-slate-400">Thu tiền khi giao hàng — chưa ghi nhận đã thanh toán. Dùng nút &quot;Đã thu COD&quot; ở cột Thao tác để xác nhận.</p>
+                                  <p className="text-xs text-slate-400">Thu tiền khi giao hàng — tự động ghi nhận đã thanh toán khi đơn chuyển sang &quot;Đã giao&quot;.</p>
                                 )}
                               </div>
                             )}
