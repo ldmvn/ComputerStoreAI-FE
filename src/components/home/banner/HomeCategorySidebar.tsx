@@ -53,6 +53,7 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
 
   useEffect(() => {
     setHeroVisible(isDesktopWidth && intersecting);
+    return () => setHeroVisible(false);
   }, [isDesktopWidth, intersecting, setHeroVisible]);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
