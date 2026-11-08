@@ -20,6 +20,7 @@ import ProductPromotions from './ProductPromotions';
 import ProductReviews from './ProductReviews';
 import ProductSpecificationsModal from './ProductSpecificationsModal';
 import { useFeaturesStore } from '@/store/features.store';
+import { useChatContextStore } from '@/store/chatContext.store';
 
 type DetailState = { slug: string; status: 'loading' | 'ready' | 'missing' | 'error'; product?: Product; message?: string };
 export default function ProductDetail({ slug }: { slug: string }) {
@@ -44,6 +45,13 @@ export default function ProductDetail({ slug }: { slug: string }) {
     return () => controller.abort();
   }, [slug, attempt]);
   const product = state.slug === slug ? state.product : undefined;
+  const viewingId = product?.id;
+  useEffect(() => {
+    if (viewingId === undefined) return;
+    const { setProduct, clearProduct } = useChatContextStore.getState();
+    setProduct(viewingId);
+    return () => clearProduct(viewingId);
+  }, [viewingId]);
   if (state.slug !== slug || state.status === 'loading') return <ProductDetailSkeleton />;
   if (!product) return <section className="rounded-2xl border border-slate-200 bg-white px-5 py-16 text-center" aria-labelledby="product-error-title">
     <PackageX size={44} className="mx-auto mb-4 text-slate-300" aria-hidden="true" />

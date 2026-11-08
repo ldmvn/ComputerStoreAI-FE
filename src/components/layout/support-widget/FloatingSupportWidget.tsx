@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import PageContextTracker from '@/components/ai/PageContextTracker';
 import { AnimatePresence, m } from 'motion/react';
 import FloatingSupportToggle from './FloatingSupportToggle';
 import FloatingSupportPanel from './FloatingSupportPanel';
@@ -63,6 +64,7 @@ export default function FloatingSupportWidget() {
           </m.div>
         )}
       </AnimatePresence>
+      <Suspense fallback={null}><PageContextTracker /></Suspense>
       <FloatingSupportToggle isOpen={isOpen} toggleAvatarUrl={config?.toggleAvatarUrl} onClick={() => (isOpen ? closeAll() : setIsOpen(true))} />
     </div>
   );

@@ -15,6 +15,8 @@ export type AiChatRequest = {
   message: string;
   conversationId: string | null;
   context?: AiChatContext;
+  currentProductId?: number;
+  pageKey?: AiPageKey;
 };
 
 export type AiCitation = {
@@ -52,3 +54,9 @@ export type ChatMessage = {
   status: 'sending' | 'sent' | 'error';
   createdAt: number;
 };
+
+// Closed set mirrored by backend/src/ai/config/pageContext.js — never send anything else.
+export type AiPageKey =
+  | 'home' | 'product_list' | 'product_detail' | 'search' | 'cart' | 'checkout'
+  | 'order_history' | 'order_detail' | 'wishlist' | 'build_pc' | 'ai_build_pc'
+  | 'account' | 'auth' | 'policy' | 'other';

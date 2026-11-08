@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getAiStatus, postAiChat } from '@/services/ai.service';
 import { ApiRequestError } from '@/services/http.client';
 import { useAuthStore } from '@/store/auth.store';
+import { useChatContextStore } from '@/store/chatContext.store';
 import type { AiStatus, ChatMessage, AiChatContext } from '@/types/ai.type';
 import { saveSession, loadSession, clearSession } from '@/lib/chatHistory';
 
@@ -78,7 +79,9 @@ export function useAIChat() {
     setMessages(prev => [...prev, { id: pendingId, role: 'assistant', content: '', status: 'sending', createdAt: Date.now() }]);
     setSending(true);
 
-    postAiChat({ message: trimmed, conversationId: activeConversation, context }, token, controller.signal)
+    // Read at send time (not render time) so the hint always reflects the page open right now.
+    const { productId: currentProductId, pageKey } = useChatContextStore.getState();
+    postAiChat({ message: trimmed, conversationId: activeConversation, context, pageKey, ...(currentProductId ? { currentProductId } : {}) }, token, controller.signal)
       .then(res => {
         if (generation !== generationRef.current) return;
         conversationRef.current = res.data.conversationId;
