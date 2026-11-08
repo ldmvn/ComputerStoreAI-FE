@@ -27,6 +27,7 @@ export const getAdminProducts = (token: string | null, query: ProductListQuery =
 export const getPublicProducts = (query: ProductListQuery = {}, signal?: AbortSignal) => apiRequest<Pick<ProductListResponse, 'products' | 'meta' | 'filters'>>(`/products?${queryString(query)}`, { signal });
 export const getPublicProductFilters = (context: FilterContextQuery = {}, signal?: AbortSignal) => apiRequest<ProductFilterMetadata>(`/products/filters?${queryString(context)}`, { signal });
 export const getPublicProduct = (slug: string, signal?: AbortSignal) => apiRequest<{ product: Product & ProductStatistics }>(`/products/${encodeURIComponent(slug)}`, { signal });
+export const getRelatedProducts = (slug: string, limit = 8, signal?: AbortSignal) => apiRequest<{ products: Product[] }>(`/products/${encodeURIComponent(slug)}/related?limit=${limit}`, { signal });
 export const recordProductView = (slug: string, viewId: string, signal?: AbortSignal) => apiRequest<{ viewCount: number }>(`/products/${encodeURIComponent(slug)}/views`, { method: 'POST', body: JSON.stringify({ viewId }), signal });
 export const getAdminProduct = (token: string | null, id: number, signal?: AbortSignal) => apiRequest<{ product: Product }>(`/admin/products/${id}`, { signal }, token);
 

@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
-import { PackageOpen } from 'lucide-react';
+import { Flame, PackageOpen } from 'lucide-react';
 import type { Product } from '@/types/product.type';
 import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice, productDetailHref } from '@/lib/product';
@@ -10,7 +10,7 @@ import { useAuthModal } from '@/store/authModal.store';
 
 const STOCK_BADGE: Record<string, { label: string; cls: string }> = {
   OUT_OF_STOCK: { label: 'Hết hàng', cls: 'bg-red-50 text-red-700' },
-  LOW_STOCK:    { label: 'Sắp hết hàng', cls: 'bg-amber-50 text-amber-700' },
+  LOW_STOCK:    { label: 'Sắp hết', cls: 'bg-amber-50 text-amber-700' },
 };
 
 export default function CatalogProductCard({ product }: { product: Product }) {
@@ -39,6 +39,12 @@ export default function CatalogProductCard({ product }: { product: Product }) {
           {discounted && (
             <span className="absolute left-2 top-2 z-10 rounded-md bg-primary-50 px-1.5 py-0.5 text-[11px] font-bold text-primary-700">
               -{discount}%
+            </span>
+          )}
+          {product.isHot && (
+            <span className="absolute right-2 top-2 z-10 inline-flex items-center gap-0.5 rounded-md bg-gradient-to-r from-red-500 to-orange-500 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+              <Flame className="h-3 w-3 fill-current" aria-hidden="true" />
+              Hot
             </span>
           )}
           {product.primaryImage ? (
@@ -90,17 +96,19 @@ export default function CatalogProductCard({ product }: { product: Product }) {
 
         {/* Pricing — pushed to bottom */}
         <div className="mt-auto flex flex-col gap-1 pt-1">
-          {stockBadge && (
-            <span className={`w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${stockBadge.cls}`}>
-              {stockBadge.label}
-            </span>
-          )}
           {discounted && (
             <p className="text-xs text-slate-400">
               <del>{formatProductPrice(product.originalPrice!)}</del>
             </p>
           )}
-          <p className="text-sm font-bold text-primary-700 sm:text-base">{formatProductPrice(product.price)}</p>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="text-sm font-bold text-primary-700 sm:text-base">{formatProductPrice(product.price)}</p>
+            {stockBadge && (
+              <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium ${stockBadge.cls}`}>
+                {stockBadge.label}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Actions */}

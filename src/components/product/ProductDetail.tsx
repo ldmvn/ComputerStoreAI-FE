@@ -18,6 +18,7 @@ import ProductStatistics from './ProductStatistics';
 import ProductDescription from './ProductDescription';
 import ProductPromotions from './ProductPromotions';
 import ProductReviews from './ProductReviews';
+import RelatedProducts from './RelatedProducts';
 import ProductSpecificationsModal from './ProductSpecificationsModal';
 import { useFeaturesStore } from '@/store/features.store';
 import { useChatContextStore } from '@/store/chatContext.store';
@@ -179,6 +180,8 @@ export default function ProductDetail({ slug }: { slug: string }) {
       </div>
 
     </div>
+
+    <RelatedProducts key={`related-${product.id}`} slug={product.slug} />
 
     <ProductDetailContent key={product.id} product={product} />
     <ProductSpecificationsModal

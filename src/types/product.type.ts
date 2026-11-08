@@ -60,6 +60,7 @@ export type Product = {
   isActive: boolean;
   isDeleted: boolean;
   stockStatus: ProductStockStatus;
+  isHot?: boolean;
   primaryImage: string | null;
   images?: ProductImage[];
   specifications?: ProductSpecification[];
