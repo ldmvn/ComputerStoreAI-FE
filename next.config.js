@@ -28,6 +28,12 @@ const isLocalhost  = backendHost === 'localhost' || backendHost === '127.0.0.1';
 
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // The rewrites() proxy below aborts upstream requests after 30s by default
+    // and answers a bare "500 Internal Server Error". AI Build PC (/api/ai/build-pc)
+    // chains LLM calls and routinely takes 30-90s, so allow up to 3 minutes.
+    proxyTimeout: 180_000,
+  },
   async rewrites() {
     // Plain array = Next's "afterFiles" semantics: the existing filesystem
     // API routes under app/api/* (dev-health, address-kit) are matched
