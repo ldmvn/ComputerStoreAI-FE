@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Badge,
-  BarChart2,
   Check,
   ClipboardList,
   CreditCard,
@@ -70,10 +69,8 @@ export const dashboardMenu: DashboardMenuGroup[] = [
     icon: ShoppingCart,
     children: [
       { label: 'Đơn hàng',           path: '/admin/orders',    icon: ClipboardList, permission: 'orders:view' },
-      { label: 'Thanh toán',         path: '/admin/payments',  icon: CreditCard, permission: 'orders:view' },
       { label: 'Vận chuyển',         path: '/admin/shipping',  icon: Truck,       permission: 'orders:manage' },
       { label: 'Đổi trả',            path: '/admin/returns',   icon: Undo2,         permission: 'returns:view' },
-      { label: 'Báo cáo bán hàng',   path: '/admin/reports',         icon: BarChart2, permission: 'reports:view' },
       { label: 'Yêu cầu hỗ trợ',     path: '/admin/support-tickets',    icon: LifeBuoy,   permission: 'support:view' },
     ],
   },

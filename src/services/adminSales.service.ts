@@ -85,30 +85,6 @@ export type AdminReturn = {
   user: { id: number; fullName: string; email: string; phone: string };
 };
 
-export type RevenueData = {
-  revenue: number;
-  deliveredOrders: number;
-  statusBreakdown: Record<string, { count: number; sum: number }>;
-};
-
-export type TopProduct = {
-  productId: number;
-  name: string;
-  slug: string;
-  primaryImage: string | null;
-  totalQuantity: number;
-  totalRevenue: number;
-};
-
-export type DailyRevenue = { date: string; revenue: number; count: number };
-
-export type ReportSummary = {
-  revenue: RevenueData;
-  topProducts: TopProduct[];
-  dailyRevenue: DailyRevenue[];
-  newCustomers: number;
-};
-
 // ── Admin Orders ──────────────────────────────────────────────────────────────
 
 function buildQuery(params: Record<string, string | number | undefined>) {
@@ -193,8 +169,3 @@ export async function adminUpdateReturnStatus(
   return ret;
 }
 
-// ── Admin Reports ─────────────────────────────────────────────────────────────
-
-export async function adminGetReport(token: string | null, from?: string, to?: string): Promise<ReportSummary> {
-  return apiRequest<ReportSummary>(`/admin/reports${buildQuery({ from, to })}`, {}, token);
-}
