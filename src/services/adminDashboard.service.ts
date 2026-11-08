@@ -126,3 +126,40 @@ export async function getCategoryRevenue(
   const { categoryRevenue } = await apiRequest<{ categoryRevenue: CategoryRevenue[] }>(`/admin/dashboard/category-revenue${qs ? `?${qs}` : ''}`, {}, token);
   return categoryRevenue;
 }
+
+export type ProfitPoint = { date: string; revenue: number; cost: number; profit: number };
+
+export type ProductProfit = {
+  productId: number;
+  name: string;
+  slug: string;
+  quantitySold: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+};
+
+export type ProfitLossData = {
+  range: { start: string; end: string; bucket: 'day' | 'month' };
+  revenue: number;
+  cost: number;
+  profit: number;
+  marginPercent: number;
+  timeline: ProfitPoint[];
+  topProfit: ProductProfit[];
+  topLoss: ProductProfit[];
+  missingCostItems: number;
+  missingCostProducts: number;
+};
+
+export async function getProfitLoss(
+  token: string | null,
+  params: { range?: DashboardRange; from?: string; to?: string } = {}
+): Promise<ProfitLossData> {
+  const q = new URLSearchParams();
+  if (params.range) q.set('range', params.range);
+  if (params.from) q.set('from', params.from);
+  if (params.to) q.set('to', params.to);
+  const qs = q.toString();
+  return apiRequest<ProfitLossData>(`/admin/dashboard/profit-loss${qs ? `?${qs}` : ''}`, {}, token);
+}

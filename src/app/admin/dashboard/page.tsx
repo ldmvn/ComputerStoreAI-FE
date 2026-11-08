@@ -21,6 +21,7 @@ import {
 import RevenueChart from '@/components/admin/dashboard/RevenueChart';
 import DonutChart, { type DonutSlice } from '@/components/admin/dashboard/DonutChart';
 import HorizontalBarChart from '@/components/admin/dashboard/HorizontalBarChart';
+import ProfitLossSection from '@/components/admin/dashboard/ProfitLossSection';
 
 const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
   { value: '7d', label: '7 ngày qua' },
@@ -265,6 +266,9 @@ export default function DashboardPage() {
           })
         )}
       </div>
+
+      {/* ── Profit & loss ───────────────────────────────────────────────── */}
+      <ProfitLossSection token={token} enabled={isHydrated} range={range} from={customFrom} to={customTo} />
 
       {/* ── Charts row ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
