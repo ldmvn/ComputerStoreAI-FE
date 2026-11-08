@@ -34,8 +34,8 @@ function PromotionAccordionItem({ promo, index, defaultOpen }: { promo: ProductP
 
       {open && (
         <div id={panelId} className="bg-white px-4 pb-4 pl-[2.75rem] pr-4 sm:px-5 sm:pl-[3.25rem]">
-          {promo.description && <p className="text-sm leading-relaxed text-slate-600">{promo.description}</p>}
-          {promo.conditionText && <p className="mt-1.5 text-xs text-slate-500">Điều kiện: {promo.conditionText}</p>}
+          {promo.description && <p className="whitespace-pre-line break-words text-sm leading-relaxed text-slate-600">{promo.description}</p>}
+          {promo.conditionText && <p className="mt-1.5 whitespace-pre-line break-words text-xs text-slate-500">Điều kiện: {promo.conditionText}</p>}
           {endDate && <p className="mt-1 text-xs text-slate-400">Áp dụng đến hết {endDate}</p>}
 
           {promo.gift && (
