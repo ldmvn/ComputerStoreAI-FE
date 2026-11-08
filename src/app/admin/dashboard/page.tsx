@@ -24,6 +24,7 @@ import HorizontalBarChart from '@/components/admin/dashboard/HorizontalBarChart'
 import ProfitLossSection from '@/components/admin/dashboard/ProfitLossSection';
 
 const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
+  { value: 'today', label: 'Hôm nay' },
   { value: '7d', label: '7 ngày qua' },
   { value: '30d', label: '30 ngày qua' },
   { value: 'month', label: 'Tháng hiện tại' },

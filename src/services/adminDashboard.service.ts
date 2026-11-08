@@ -1,7 +1,7 @@
 import { apiRequest } from './http.client';
 import type { OrderStatus } from '@/types/order.type';
 
-export type DashboardRange = '7d' | '30d' | 'month' | '12m' | 'custom';
+export type DashboardRange = 'today' | '7d' | '30d' | 'month' | '12m' | 'custom';
 
 export type KpiMetric = { value: number; changePct?: number };
 
@@ -133,10 +133,28 @@ export type ProductProfit = {
   productId: number;
   name: string;
   slug: string;
+  primaryImage: string | null;
   quantitySold: number;
   revenue: number;
   cost: number;
   profit: number;
+  marginPercent: number;
+};
+
+export type ProfitInventory = {
+  costValue: number;
+  retailValue: number;
+  productsCounted: number;
+  productsMissingCost: number;
+};
+
+export type ProfitPrevious = {
+  revenue: number;
+  cost: number;
+  profit: number;
+  marginPercent: number;
+  /** null when the previous period is 0 (no baseline to compare against). */
+  changePercent: { revenue: number | null; profit: number | null };
 };
 
 export type ProfitLossData = {
@@ -150,6 +168,9 @@ export type ProfitLossData = {
   topLoss: ProductProfit[];
   missingCostItems: number;
   missingCostProducts: number;
+  missingCostSamples: string[];
+  inventory: ProfitInventory;
+  previous: ProfitPrevious;
 };
 
 export async function getProfitLoss(
