@@ -55,8 +55,8 @@ public/                 # Static assets
 
 ```bash
 # Clone repo
-git clone https://github.com/ldmvn/ComputerStoreAI-Frontend.git
-cd ComputerStoreAI-Frontend
+git clone https://github.com/ldmvn/ComputerStoreAI-FE.git
+cd ComputerStoreAI-FE
 
 # Cài đặt dependencies
 npm install
@@ -90,4 +90,4 @@ npm run type-check   # Kiểm tra TypeScript
 ## Yêu cầu
 
 - Node.js >= 18
-- Backend API đang chạy tại `http://localhost:5000` (xem [ComputerStoreAI-Backend](https://github.com/ldmvn/ComputerStoreAI-Backend))
+- Backend API đang chạy tại `http://localhost:5000` (xem [ComputerStoreAI-BE](https://github.com/ldmvn/ComputerStoreAI-BE))
