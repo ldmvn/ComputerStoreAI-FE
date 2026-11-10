@@ -452,8 +452,9 @@ export default function ContactSettingsPage() {
                       <p className="text-sm font-medium text-slate-700">Xác nhận đặt hàng</p>
                       <p className="mt-0.5 text-xs text-slate-500">Email xác nhận gửi cho khách sau khi đặt hàng thành công.</p>
                     </div>
-                    <span className="mt-0.5 flex-shrink-0 rounded-full bg-slate-200 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
-                      Chưa triển khai
+                    <span className={`mt-0.5 flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold
+                      ${smtp?.configured && !smtp?.lastError ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>
+                      {smtp?.configured && !smtp?.lastError ? 'Đang hoạt động' : 'Chờ SMTP'}
                     </span>
                   </div>
                   <div className="flex items-start justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
