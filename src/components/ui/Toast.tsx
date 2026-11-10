@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, forwardRef, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, m } from 'motion/react';
 import { CheckCircle2, Info, AlertTriangle, XCircle, X } from 'lucide-react';
 import { toastVariants, toastTransition } from './motion/transitions';
@@ -157,11 +157,13 @@ function ToastViewport({ toasts, onDismiss }: { toasts: ToastEntry[]; onDismiss:
   );
 }
 
-function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: string) => void }) {
+// AnimatePresence mode="popLayout" attaches a ref to its direct child, so this must forward it.
+const ToastItem = forwardRef<HTMLDivElement, { toast: ToastEntry; onDismiss: (id: string) => void }>(function ToastItem({ toast, onDismiss }, ref) {
   const style = VARIANT_STYLES[toast.variant];
   const role = toast.variant === 'error' || toast.variant === 'warning' ? 'alert' : 'status';
   return (
     <m.div
+      ref={ref}
       layout
       role={role}
       data-testid="app-toast"
@@ -190,4 +192,4 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: st
       </button>
     </m.div>
   );
-}
+});
