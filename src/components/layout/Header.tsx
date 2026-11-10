@@ -91,6 +91,7 @@ export default function Header() {
 
   // Hydrate wishlist on token change so other components see current state
   const wishlistToken = useAuthStore(state => state.token);
+  const wishlistUser = useAuthStore(state => state.user);
   // Confirmed server state, not the optimistic `ids` set, so the badge never over-reports.
   const wishlistCount = useWishlistStore(state => state.items.length);
   const wishlistHydrated = useWishlistStore(state => state.hydrated);
@@ -117,9 +118,10 @@ export default function Header() {
   const [supportsHover] = useState(() => typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
   useEffect(() => {
     if (!authHydrated) return;
-    if (wishlistToken) { if (!wishlistHydrated) void hydrateWishlist(wishlistToken); }
+    // Auth is cookie-based: after a reload `token` stays null while `user` is set, so key off `user`.
+    if (wishlistUser) { if (!wishlistHydrated) void hydrateWishlist(wishlistToken); }
     else { clearWishlist(); }
-  }, [authHydrated, wishlistToken, wishlistHydrated, hydrateWishlist, clearWishlist]);
+  }, [authHydrated, wishlistUser, wishlistToken, wishlistHydrated, hydrateWishlist, clearWishlist]);
 
   const features = useFeaturesStore(s => s.flags);
   const loadFeatures = useFeaturesStore(s => s.load);

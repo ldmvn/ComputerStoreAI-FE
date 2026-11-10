@@ -52,8 +52,9 @@ export default function WishlistPage() {
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (user && !hydrated) void hydrate(token);
-    if (!user && isHydrated) useWishlistStore.getState().clear();
+    if (!isHydrated) return;
+    if (user) { if (!hydrated) void hydrate(token); }
+    else useWishlistStore.getState().clear();
   }, [user, token, hydrated, isHydrated, hydrate]);
 
   const handleRemove = useCallback(async (productId: number, productName: string) => {
@@ -85,29 +86,12 @@ export default function WishlistPage() {
     return null;
   }
 
-  const breadcrumb = (
-    <nav aria-label="Breadcrumb" className="mb-4 flex items-center gap-1.5 text-sm text-slate-500">
-      <Link href="/" className="hover:text-primary-600">Trang chủ</Link>
-      <ChevronRight size={14} aria-hidden="true" />
-      <span className="text-slate-700">Yêu thích</span>
-    </nav>
-  );
-
   if (!user) {
     return (
-      <>
-        {breadcrumb}
+      <section>
+        <h1 className="mb-6 text-2xl font-semibold text-slate-900">Yêu thích</h1>
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex items-center gap-3 px-5 py-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
-              <Heart className="h-5 w-5" />
-            </span>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800">Yêu thích</h1>
-              <p className="text-sm text-slate-500">Lưu lại sản phẩm yêu thích</p>
-            </div>
-          </div>
-          <div className="px-5 pb-6">
+          <div className="px-5 py-6">
             <EmptyState
               icon={Heart}
               iconClassName="mx-auto mb-4 h-11 w-11 text-primary-300"
@@ -117,50 +101,27 @@ export default function WishlistPage() {
             />
           </div>
         </div>
-      </>
+      </section>
     );
   }
 
   const showSkeleton = loading && items.length === 0;
 
   return (
-    <>
-      {breadcrumb}
+    <section>
+      <div className="mb-6 flex items-end justify-between gap-3">
+        <h1 className="text-2xl font-semibold text-slate-900">
+          Yêu thích
+          <span className="ml-2 text-sm font-normal text-slate-500" role="status">({items.length} sản phẩm)</span>
+        </h1>
+        <Link href="/products" className="inline-flex items-center gap-1 text-sm font-semibold text-primary-700 hover:text-primary-800">
+          Tiếp tục khám phá <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </div>
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600">
-              <Heart className="h-5 w-5" />
-            </span>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800">Yêu thích</h1>
-              <p className="text-sm text-slate-500" role="status">{items.length} sản phẩm trong danh sách yêu thích</p>
-            </div>
-          </div>
-          <Link href="/products" className="inline-flex items-center gap-1 text-sm font-semibold text-primary-700 hover:text-primary-800">
-            Tiếp tục khám phá <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </div>
+        {error && <p role="alert" className="mx-5 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-        {/* Stat strip */}
-        {!showSkeleton && items.length > 0 && (
-          <div className="grid grid-cols-2 border-y border-slate-200">
-            {[
-              { label: 'Đã lưu', value: items.length },
-              { label: 'Còn hàng', value: items.filter(i => i.product.stockStatus !== 'OUT_OF_STOCK' && i.product.stockQuantity > 0 && i.product.isActive).length },
-            ].map((s, idx) => (
-              <div key={s.label} className={`px-5 py-4 ${idx < 1 ? 'border-r border-slate-200' : ''}`}>
-                <p className="text-2xl font-bold tabular-nums text-primary-600">{s.value}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {error && <p role="alert" className="mx-5 mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-
-        <div className="px-4 pb-4">
+        <div className="px-4 py-2">
         {showSkeleton ? <WishlistSkeleton /> : items.length === 0 ? (
       error ? (
         <EmptyState
@@ -247,6 +208,6 @@ export default function WishlistPage() {
         )}
         </div>
       </div>
-    </>
+    </section>
   );
 }
