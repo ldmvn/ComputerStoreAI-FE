@@ -120,11 +120,17 @@ function PriceFilter({ min, max, range, onApply }: { min?: number; max?: number;
   );
 }
 
-function OptionRow({ name, checked, label, count, onSelect }: { name: string; checked: boolean; label: string; count?: number; onSelect: () => void }) {
+// `onDeselect` lets the user click an already-selected radio to clear it (used by the category
+// group, which has no "all" row).
+function OptionRow({ name, checked, label, count, onSelect, onDeselect }: { name: string; checked: boolean; label: string; count?: number; onSelect: () => void; onDeselect?: () => void }) {
   return (
     <li>
       <label className="flex min-h-6 cursor-pointer items-center gap-2 py-0.5 text-sm text-slate-600 hover:text-slate-900">
-        <input type="radio" name={name} checked={checked} onChange={onSelect} className="h-4 w-4 shrink-0 accent-primary-600" />
+        <input
+          type="radio" name={name} checked={checked} onChange={onSelect}
+          onClick={() => { if (checked && onDeselect) onDeselect(); }}
+          className="h-4 w-4 shrink-0 accent-primary-600"
+        />
         <span className="min-w-0 flex-1 truncate">{label}</span>
         {count != null && <span className="shrink-0 text-xs tabular-nums text-slate-400">({count})</span>}
       </label>
@@ -156,7 +162,6 @@ function FilterPanel({ state, brands, attributes, priceRange, allCategories, onN
       {leafCategories.length > 0 && (
         <Collapsible title="Danh mục sản phẩm">
           <ul className="space-y-1.5">
-            <OptionRow name="filter-category" checked={!state.category} label="Tất cả sản phẩm" onSelect={() => onCategorySelect('')} />
             <ShowMoreWrapper total={leafCategories.length} activeIndex={catActiveIndex}>
               {limit => leafCategories.slice(0, limit).map(cat => (
                 <OptionRow
@@ -165,6 +170,7 @@ function FilterPanel({ state, brands, attributes, priceRange, allCategories, onN
                   checked={state.category === cat.slug}
                   label={cat.name}
                   onSelect={() => onCategorySelect(cat.slug)}
+                  onDeselect={() => onCategorySelect('')}
                 />
               ))}
             </ShowMoreWrapper>
@@ -239,9 +245,12 @@ function FilterPanel({ state, brands, attributes, priceRange, allCategories, onN
 export default function FilterSidebar({ mobileOpen, onMobileClose, ...panel }: FilterSidebarProps) {
   return (
     <>
-      <aside className="hidden w-[220px] shrink-0 lg:block">
-        <div className="sticky top-24 rounded-xl border border-slate-200 bg-white p-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-400">Bộ lọc</p>
+      {/* Sticky + own scroll area: the aside itself is sticky (its containing block is the tall flex
+          row, so it can actually stick), and its list scrolls independently of the page —
+          overscroll-contain stops scroll chaining, and the "Bộ lọc" title stays pinned above. */}
+      <aside className="sticky top-24 hidden max-h-[calc(100dvh-7rem)] w-[220px] shrink-0 flex-col rounded-xl border border-slate-200 bg-white lg:flex">
+        <p className="shrink-0 px-4 pb-3 pt-4 text-xs font-bold uppercase tracking-wide text-slate-400">Bộ lọc</p>
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4" data-testid="filter-scroll">
           <FilterPanel {...panel} />
         </div>
       </aside>

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, Flame, SlidersHorizontal, Star, X, Zap } from 'lucide-react';
 import {
   getPublicProductFilters,
   getPublicProducts,
@@ -16,12 +16,17 @@ import EmptyState from '@/components/ui/EmptyState';
 import CatalogProductCard from './CatalogProductCard';
 import FilterSidebar, { type FilterState } from './FilterSidebar';
 
+// `featured` (best sellers) and `rating` are ranked by the backend from sales / review data.
 const SORT_OPTIONS = [
-  { value: 'newest',    label: 'Mới nhất' },
-  { value: 'priceAsc',  label: 'Giá: Thấp → Cao' },
-  { value: 'priceDesc', label: 'Giá: Cao → Thấp' },
-  { value: 'nameAsc',   label: 'Tên: A → Z' },
-];
+  { value: 'featured',  label: 'Nổi bật',        Icon: Flame },
+  { value: 'newest',    label: 'Mới nhất',       Icon: Zap },
+  { value: 'priceAsc',  label: 'Giá thấp - cao', Icon: ArrowUpNarrowWide },
+  { value: 'priceDesc', label: 'Giá cao - thấp', Icon: ArrowDownWideNarrow },
+  { value: 'rating',    label: 'Đánh giá cao',   Icon: Star },
+] as const;
+const DEFAULT_SORT = 'featured';
+// Unknown values (e.g. an old bookmarked ?sort=nameAsc) fall back to the default, in both the UI and the query.
+const normalizeSort = (value: string | null) => SORT_OPTIONS.find(o => o.value === value)?.value ?? DEFAULT_SORT;
 
 const EMPTY_METADATA: ProductFilterMetadata = { brands: [], attributes: [], priceRange: { min: null, max: null }, categories: [] };
 
@@ -89,9 +94,10 @@ export default function ProductCatalog() {
     const controller = new AbortController();
     const params = new URLSearchParams(key);
     const query: ProductListQuery = { attr: {} };
-    for (const field of ['search', 'category', 'brand', 'attribute', 'attributeValue', 'sort', 'section'] as const) {
+    for (const field of ['search', 'category', 'brand', 'attribute', 'attributeValue', 'section'] as const) {
       const v = params.get(field); if (v) query[field] = v;
     }
+    query.sort = normalizeSort(params.get('sort'));
     for (const field of ['minPrice', 'maxPrice', 'page', 'brandId'] as const) {
       const v = params.get(field); if (v !== null && v !== '') query[field] = Number(v);
     }
@@ -194,15 +200,30 @@ export default function ProductCatalog() {
         ? (metadata.sectionName ?? sectionFilter)
         : 'Tất cả sản phẩm';
 
-  const sortSelect = (className: string) => (
-    <select
-      className={className}
-      value={search.get('sort') || 'newest'}
-      onChange={e => navigate({ sort: e.target.value, page: '1' })}
-      aria-label="Sắp xếp sản phẩm"
-    >
-      {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-    </select>
+  const currentSort = normalizeSort(search.get('sort'));
+  // Segmented sort bar; scrolls sideways on narrow screens instead of wrapping.
+  const sortBar = (
+    <div role="group" aria-label="Sắp xếp sản phẩm" className="flex w-fit max-w-full gap-1 overflow-x-auto rounded-xl bg-slate-100 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {SORT_OPTIONS.map(({ value, label, Icon }) => {
+        const active = currentSort === value;
+        return (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => navigate({ sort: value === DEFAULT_SORT ? '' : value, page: '1' })}
+            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              active
+                ? 'border-primary-300 bg-white text-primary-700 shadow-sm'
+                : 'border-transparent text-slate-600 hover:bg-white/70 hover:text-slate-900'
+            }`}
+          >
+            <Icon className="h-4 w-4" aria-hidden="true" />
+            {label}
+          </button>
+        );
+      })}
+    </div>
   );
 
   return (
@@ -226,20 +247,14 @@ export default function ProductCatalog() {
         </button>
       </div>
 
-      {/* Desktop header */}
-      <div className="mb-4 hidden items-center justify-between gap-4 lg:flex">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{pageTitle}</h1>
-          {!loading && result && <p className="mt-1 text-sm text-slate-500">{result.meta.total} sản phẩm</p>}
+      {/* On desktop the page title + product count (left) and the sort bar (right) share one row;
+          mobile shows the title in the header above, so only the sort bar is left here. */}
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="hidden min-w-0 lg:block">
+          <h1 className="truncate text-2xl font-semibold text-slate-900">{pageTitle}</h1>
+          {!loading && result && <p className="mt-0.5 text-sm text-slate-500">{result.meta.total} sản phẩm</p>}
         </div>
-        <label className="flex shrink-0 items-center gap-2 text-sm text-slate-600">
-          Sắp xếp
-          {sortSelect('rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm')}
-        </label>
-      </div>
-
-      <div className="mb-3 lg:hidden">
-        {sortSelect('w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm')}
+        {sortBar}
       </div>
 
       {chips.length > 0 && (
