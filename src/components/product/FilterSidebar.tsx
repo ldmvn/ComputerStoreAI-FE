@@ -243,6 +243,13 @@ function FilterPanel({ state, brands, attributes, priceRange, allCategories, onN
 }
 
 export default function FilterSidebar({ mobileOpen, onMobileClose, ...panel }: FilterSidebarProps) {
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') onMobileClose(); };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpen, onMobileClose]);
+
   return (
     <>
       {/* Sticky + own scroll area: the aside itself is sticky (its containing block is the tall flex

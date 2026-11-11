@@ -192,7 +192,7 @@ export default function OrderDetailPage() {
         }
       })
       .catch(err => {
-        if (err instanceof OrderRequestError && err.status === 404) {
+        if ((err instanceof ApiRequestError || err instanceof OrderRequestError) && err.status === 404) {
           setError('Đơn hàng không tồn tại hoặc bạn không có quyền truy cập.');
         } else {
           setError('Không thể tải thông tin đơn hàng. Vui lòng thử lại.');
