@@ -68,6 +68,10 @@ export default function AiBuildPcPage() {
     generate({ prompt: newPrompt });
   }
 
+  function handleRebuildWithBudget(budget: number) {
+    generate({ prompt: lastPrompt, budget });
+  }
+
   function handleTransferToManual(tier: AiBuildPcTier) {
     if (!tier.items.length) return;
     const buildItems: Record<string, PickedItem> = {};
@@ -116,13 +120,15 @@ export default function AiBuildPcPage() {
     }
   }
 
-  if (state === 'done' && result?.tiers?.length) {
+  if ((state === 'done' || state === 'loading') && result?.tiers?.length) {
     return (
       <ResultView
+        loading={state === 'loading'}
         result={result}
         lastPrompt={lastPrompt}
         onEdit={reset}
         onRefine={handleRefine}
+        onRebuild={handleRebuildWithBudget}
         onTransfer={handleTransferToManual}
         onAddToCart={handleAddToCart}
         cartStatus={cartStatus}
@@ -338,11 +344,17 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
 // RESULT VIEW
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function ResultView({ result, lastPrompt, onEdit, onRefine, onTransfer, onAddToCart, cartStatus, cartMsg }: {
+function formatMillions(value: number) {
+  return `${(value / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} triệu`;
+}
+
+function ResultView({ loading = false, result, lastPrompt, onEdit, onRefine, onRebuild, onTransfer, onAddToCart, cartStatus, cartMsg }: {
+  loading?: boolean;
   result: AiBuildPcResult;
   lastPrompt: string;
   onEdit: () => void;
   onRefine: (mod: string) => void;
+  onRebuild: (budget: number) => void;
   onTransfer: (tier: AiBuildPcTier) => void;
   onAddToCart: (tier: AiBuildPcTier) => void;
   cartStatus: string;
@@ -351,16 +363,62 @@ function ResultView({ result, lastPrompt, onEdit, onRefine, onTransfer, onAddToC
   const [selectedIdx, setSelectedIdx] = useState(result.selectedTier);
   const tier = result.tiers[selectedIdx] || result.tiers[0];
   const parsed = result.parsedRequirements || {};
+  const shortfall = result.budgetShortfall;
+
+  const tierSection = (
+    <>
+      {/* Tier cards */}
+      <div className={`mt-6 mb-8 grid grid-cols-1 gap-4 ${result.tiers.length >= 3 ? 'sm:grid-cols-3' : result.tiers.length === 2 ? 'sm:grid-cols-2' : 'sm:max-w-sm'}`}>
+        {result.tiers.map((t, i) => (
+          <TierCard
+            key={i}
+            tier={t}
+            budget={result.budget}
+            selected={i === selectedIdx}
+            recommended={i === result.selectedTier}
+            onClick={() => setSelectedIdx(i)}
+            prevTier={i > 0 ? result.tiers[i - 1] : undefined}
+          />
+        ))}
+      </div>
+
+      {!shortfall && (
+        <p className="mb-8 text-xs text-gray-400">
+          Mặc định AI không đưa ra bản vượt ngân sách bạn nêu.
+        </p>
+      )}
+
+      {/* Selected tier detail */}
+      <TierDetail
+        tier={tier}
+        tierIdx={selectedIdx}
+        result={result}
+        onTransfer={() => onTransfer(tier)}
+        onAddToCart={() => onAddToCart(tier)}
+        cartStatus={cartStatus}
+        cartMsg={cartMsg}
+      />
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <div className="mx-auto max-w-5xl px-4 py-8">
+        {loading && (
+          <div role="status" className="mb-4 flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
+            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+            AI đang dựng lại cấu hình, vui lòng đợi trong giây lát…
+          </div>
+        )}
+        <div className={loading ? 'pointer-events-none opacity-60' : ''}>
         {/* Header */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-[#C4480A]" />
             <h1 className="text-xl font-bold sm:text-2xl">
-              AI DỰNG {result.tiers.length} CẤU HÌNH CHO BẠN
+              {shortfall
+                ? `VỚI ${formatMillions(result.budget).toUpperCase()}, AI CHƯA DỰNG ĐƯỢC BỘ MÁY HỢP LỆ`
+                : `AI DỰNG ${result.tiers.length} CẤU HÌNH CHO BẠN`}
             </h1>
           </div>
           <button
@@ -386,44 +444,46 @@ function ResultView({ result, lastPrompt, onEdit, onRefine, onTransfer, onAddToC
         {/* Parsed requirements tags */}
         <ParsedRequirementsTags parsed={parsed} />
 
-        {/* Tier cards */}
-        <div className="mt-6 mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {result.tiers.map((t, i) => (
-            <TierCard
-              key={i}
-              tier={t}
-              budget={result.budget}
-              selected={i === selectedIdx}
-              recommended={i === result.selectedTier}
-              onClick={() => setSelectedIdx(i)}
-              prevTier={i > 0 ? result.tiers[i - 1] : undefined}
-            />
-          ))}
-        </div>
-
-        <p className="mb-8 text-xs text-gray-400">
-          Mặc định AI không đưa ra bản vượt ngân sách bạn nêu.
-        </p>
-
-        {/* Selected tier detail */}
-        <TierDetail
-          tier={tier}
-          tierIdx={selectedIdx}
-          result={result}
-          onTransfer={() => onTransfer(tier)}
-          onAddToCart={() => onAddToCart(tier)}
-          cartStatus={cartStatus}
-          cartMsg={cartMsg}
-        />
-
-        {/* Refinement section */}
-        <RefinementSection onRefine={onRefine} />
-
-        {/* Back link */}
-        <div className="mt-8 text-center">
-          <Link href="/customer/build-pc" className="text-sm text-gray-400 hover:text-gray-600 transition">
-            ← Quay lại
-          </Link>
+        {shortfall ? (
+            <section role="alert" className="mt-6 rounded-xl border-l-4 border-amber-500 bg-amber-50 p-5">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-amber-700">Phương án đề xuất</p>
+              <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
+                Cần tối thiểu khoảng {formatMillions(shortfall.minimumBudget)}
+              </h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Với linh kiện đang bán tại cửa hàng, cấu hình rẻ nhất vẫn đủ linh kiện, tương thích và chạy được mục đích bạn chọn
+                cần cao hơn ngân sách {formatMillions(shortfall.shortfall)}. AI không tự đưa ra bản vượt ngân sách của bạn.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onRebuild(shortfall.suggestedBudget)}
+                  className="rounded-lg bg-[#C4480A] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#a83c08]"
+                >
+                  Dựng lại với {formatMillions(shortfall.suggestedBudget)}
+                </button>
+                <button
+                  type="button"
+                  onClick={onEdit}
+                  className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:border-gray-400 hover:text-gray-900"
+                >
+                  Sửa yêu cầu
+                </button>
+              </div>
+            </section>
+        ) : (
+          <>
+            {result.budgetNotice && (
+              <div role="alert" className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{result.budgetNotice}</span>
+              </div>
+            )}
+            {tierSection}
+            {/* Refinement section */}
+            <RefinementSection onRefine={onRefine} />
+          </>
+        )}
         </div>
       </div>
     </div>
@@ -748,10 +808,15 @@ function CompatSection({ tier, result, showDetail, onToggle }: {
               Ngân sách tối đa {(result.budget / 1_000_000).toFixed(0)} triệu
             </span>
           )}
-          {tier.totalPrice <= result.budget && (
+          {tier.totalPrice <= result.budget ? (
             <span className="flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
               <CheckCircle2 className="h-4 w-4" />
               Còn dư ngân sách {formatBudgetDiff(result.budget - tier.totalPrice)}
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              <AlertTriangle className="h-4 w-4" />
+              Vượt ngân sách {formatBudgetDiff(tier.totalPrice - result.budget)}
             </span>
           )}
           {(parsed.games?.length ?? 0) > 0 && (

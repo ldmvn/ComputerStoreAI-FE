@@ -49,6 +49,7 @@ export type AiBuildPcTier = {
   items: AiBuildPcItem[];
   totalPrice: number;
   budgetDiff: number;
+  overBudget?: boolean;
   fpsEstimates: FpsEstimate[];
   compatibilityStatus: 'pass' | 'warning' | 'fail';
   compatibilityIssues: CompatibilityIssue[];
@@ -71,6 +72,8 @@ export type AiBuildPcResult = {
   success: boolean;
   parsedRequirements: ParsedRequirements;
   tiers: AiBuildPcTier[];
+  budgetNotice?: string;
+  budgetShortfall?: { minimumBudget: number; suggestedBudget: number; shortfall: number } | null;
   selectedTier: number;
   budget: number;
   purpose: string;
