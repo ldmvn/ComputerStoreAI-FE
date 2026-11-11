@@ -50,6 +50,10 @@ function resolveIconUrl(url: string, version: string): string {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // iPhone tự phóng to khi focus ô nhập; maximum-scale=1 chặn việc đó (vẫn kéo hai ngón để phóng to được).
+  maximumScale: 1,
+  // Android Chrome: bàn phím co vùng hiển thị thay vì che trang.
+  interactiveWidget: 'resizes-content',
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -61,6 +65,7 @@ export async function generateMetadata(): Promise<Metadata> {
     description: seo.description || 'Cửa hàng PC & Laptop chính hãng',
     ...(seo.keywords ? { keywords: seo.keywords } : {}),
     icons: { icon },
+    verification: { google: 'fqI4LETojnhQfG71TrBEmKGCpGgBReLVP3afw-pzJUw' },
     applicationName: siteName,
     openGraph: {
       siteName,
