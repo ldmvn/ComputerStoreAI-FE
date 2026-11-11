@@ -7,6 +7,7 @@ import FloatingSupportToggle from './FloatingSupportToggle';
 import FloatingSupportPanel from './FloatingSupportPanel';
 import AIChatWindow from '@/components/ai/AIChatWindow';
 import { useAIChat } from '@/hooks/useAIChat';
+import { useKeyboardViewport } from '@/hooks/useKeyboardViewport';
 import { getPublicStoreInfo } from '@/services/adminSettings.service';
 import { resolveWidgetConfig, resolveWidgetConfigOnFetchError, type ResolvedWidgetConfig } from '@/lib/supportWidget';
 import { supportPanelVariants, panelTransition } from '@/components/ui/motion/transitions';
@@ -19,6 +20,10 @@ export default function FloatingSupportWidget() {
   const [view, setView] = useState<View>('support');
   const [config, setConfig] = useState<ResolvedWidgetConfig | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const keyboard = useKeyboardViewport();
+  // Khi gõ chat trên điện thoại: khung nằm ngay trên bàn phím và co lại vừa phần còn nhìn thấy.
+  const chatKeyboardOpen = isOpen && view === 'chat' && keyboard.open;
+  const chatHeightPx = chatKeyboardOpen ? Math.max(240, Math.min(520, Math.round(keyboard.height - 16))) : undefined;
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -45,7 +50,11 @@ export default function FloatingSupportWidget() {
   }, [isOpen]);
 
   return (
-    <div ref={wrapperRef} className="fixed bottom-5 right-4 z-[80] flex flex-col items-end gap-3 sm:right-6">
+    <div
+      ref={wrapperRef}
+      style={chatKeyboardOpen ? { bottom: keyboard.inset + 8 } : undefined}
+      className="fixed bottom-5 right-4 z-[80] flex flex-col items-end gap-3 sm:right-6"
+    >
       <AnimatePresence>
         {isOpen && (
           <m.div
@@ -57,7 +66,7 @@ export default function FloatingSupportWidget() {
             transition={panelTransition}
           >
             {view === 'chat' ? (
-              <AIChatWindow chat={chat} onBack={() => setView('support')} onClose={closeAll} />
+              <AIChatWindow chat={chat} onBack={() => setView('support')} onClose={closeAll} heightPx={chatHeightPx} />
             ) : (
               <FloatingSupportPanel config={config} onClose={closeAll} onOpenChat={() => setView('chat')} />
             )}
@@ -65,7 +74,9 @@ export default function FloatingSupportWidget() {
         )}
       </AnimatePresence>
       <Suspense fallback={null}><PageContextTracker /></Suspense>
-      <FloatingSupportToggle isOpen={isOpen} toggleAvatarUrl={config?.toggleAvatarUrl} onClick={() => (isOpen ? closeAll() : setIsOpen(true))} />
+      {!chatKeyboardOpen && (
+        <FloatingSupportToggle isOpen={isOpen} toggleAvatarUrl={config?.toggleAvatarUrl} onClick={() => (isOpen ? closeAll() : setIsOpen(true))} />
+      )}
     </div>
   );
 }
