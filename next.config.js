@@ -26,6 +26,16 @@ function backendHostname() {
 const backendHost = backendHostname();
 const isLocalhost  = backendHost === 'localhost' || backendHost === '127.0.0.1';
 
+// Ảnh upload nằm trên Cloudflare R2 (tên miền công khai riêng). next/image chỉ tải ảnh từ tên miền đã khai báo.
+function mediaHostname() {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_MEDIA_URL || 'https://media.ducmanh.store').hostname;
+  } catch {
+    return null;
+  }
+}
+const mediaHost = mediaHostname();
+
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
@@ -67,6 +77,7 @@ const nextConfig = {
         protocol: isLocalhost ? 'http' : 'https',
         hostname: backendHost,
       }] : []),
+      ...(mediaHost ? [{ protocol: 'https', hostname: mediaHost }] : []),
       // Google user profile pictures (OAuth login avatars)
       {
         protocol: 'https',
