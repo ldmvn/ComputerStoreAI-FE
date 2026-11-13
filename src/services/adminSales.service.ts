@@ -72,19 +72,6 @@ export type AdminCustomerStats = {
 export type CustomerFilter = 'all' | 'no_orders' | 'has_orders' | 'returning';
 export type CustomerSortBy = 'newest' | 'oldest' | 'orders' | 'spent';
 
-export type AdminReturn = {
-  id: number;
-  orderId: number;
-  userId: number;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'COMPLETED';
-  adminNote: string | null;
-  createdAt: string;
-  updatedAt: string;
-  order: Pick<Order, 'id' | 'status' | 'subtotal' | 'shippingName' | 'shippingPhone' | 'shippingAddress' | 'items'>;
-  user: { id: number; fullName: string; email: string; phone: string };
-};
-
 // ── Admin Orders ──────────────────────────────────────────────────────────────
 
 function buildQuery(params: Record<string, string | number | undefined>) {
@@ -144,28 +131,5 @@ export async function adminListCustomers(
 export async function adminGetCustomer(token: string | null, id: number): Promise<AdminCustomerDetail> {
   const { customer } = await apiRequest<{ customer: AdminCustomerDetail }>(`/admin/customers/${id}`, {}, token);
   return customer;
-}
-
-// ── Admin Returns ─────────────────────────────────────────────────────────────
-
-export async function adminListReturns(
-  token: string | null, params: { page?: number; limit?: number; status?: string; search?: string } = {}
-): Promise<{ returns: AdminReturn[]; total: number; page: number; limit: number }> {
-  return apiRequest(`/admin/returns${buildQuery(params as Record<string, string | number>)}`, {}, token);
-}
-
-export async function adminGetReturn(token: string | null, id: number): Promise<AdminReturn> {
-  const { return: ret } = await apiRequest<{ return: AdminReturn }>(`/admin/returns/${id}`, {}, token);
-  return ret;
-}
-
-export async function adminUpdateReturnStatus(
-  token: string | null, id: number,
-  payload: { status: string; adminNote?: string }
-): Promise<AdminReturn> {
-  const { return: ret } = await apiRequest<{ return: AdminReturn }>(`/admin/returns/${id}/status`, {
-    method: 'PATCH', body: JSON.stringify(payload),
-  }, token);
-  return ret;
 }
 

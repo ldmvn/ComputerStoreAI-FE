@@ -20,7 +20,6 @@ import {
   Store,
   TicketPercent,
   Truck,
-  Undo2,
   UserCog,
   Warehouse,
   Wrench,
@@ -70,7 +69,6 @@ export const dashboardMenu: DashboardMenuGroup[] = [
     children: [
       { label: 'Đơn hàng',           path: '/admin/orders',    icon: ClipboardList, permission: 'orders:view' },
       { label: 'Vận chuyển',         path: '/admin/shipping',  icon: Truck,       permission: 'orders:manage' },
-      { label: 'Đổi trả',            path: '/admin/returns',   icon: Undo2,         permission: 'returns:view' },
       { label: 'Yêu cầu hỗ trợ',     path: '/admin/support-tickets',    icon: LifeBuoy,   permission: 'support:view' },
     ],
   },

@@ -24,7 +24,6 @@ const ROUTE_PERMISSIONS: Array<{ prefix: string; permission: string | 'ALL_ADMIN
   { prefix: '/admin/customers',        permission: 'customers:view' },
   { prefix: '/admin/accounts',         permission: 'customers:manage' },
   { prefix: '/admin/shipping',         permission: 'orders:manage' },
-  { prefix: '/admin/returns',          permission: 'returns:view' },
   { prefix: '/admin/support-tickets',  permission: 'support:view' },
   { prefix: '/admin/build-pc',         permission: 'build_pc:view' },
   { prefix: '/admin/roles',              permission: 'roles:view' },
