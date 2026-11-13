@@ -37,7 +37,9 @@ export default function MainBannerSlider({ banners, label, compact = false }: { 
   const canShowCta = showCta && Boolean(ctaLabel && target);
   const hasOverlay = canShowCta || Boolean(title || description);
 
-  const media = <BannerMedia key={active.mediaUrl} banner={active} priority={label === 'Giữa - Trên'} />;
+  // Banner phụ bên phải (compact) lấp đầy khung và crop ở giữa, tránh dải đen khi tỉ lệ khung lệch nhẹ so với ảnh;
+  // banner chính giữa vẫn giữ nguyên ảnh/video, không cắt.
+  const media = <BannerMedia key={active.mediaUrl} banner={active} fit={compact ? 'cover' : 'contain'} priority={label === 'Giữa - Trên'} />;
 
   const overlay = hasOverlay ? (
     <div

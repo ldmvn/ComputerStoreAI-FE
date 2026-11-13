@@ -72,6 +72,10 @@ export default function BannerMedia({
             autoPlay={!preview && !thumbnail}
             controls={preview}
             muted
+            // React không phản ánh đáng tin cậy thuộc tính `muted` lên thẻ video, nên đặt thẳng vào phần tử
+            // và chặn việc bật tiếng lại (kể cả bằng nút âm lượng ở khung xem trước): banner luôn không có tiếng.
+            ref={node => { if (node) node.muted = true; }}
+            onVolumeChange={event => { if (!event.currentTarget.muted) event.currentTarget.muted = true; }}
             loop
             playsInline
             preload="metadata"
