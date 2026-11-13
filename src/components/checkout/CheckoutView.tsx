@@ -18,6 +18,7 @@ import { formatProductPrice } from '@/lib/product';
 import type { Address, AddressInput } from '@/types/address.type';
 import AddressForm from '@/app/customer/profile/addresses/AddressForm';
 import VietQrPopup from './VietQrPopup';
+import OrderConfirmModal from './OrderConfirmModal';
 import type { Payment, PaymentAttempt } from '@/types/payment.type';
 
 const PAYMENT_METHODS = [
@@ -73,6 +74,7 @@ export default function CheckoutView() {
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [addFormOpen, setAddFormOpen] = useState(false);
   // Set after a successful BANK_TRANSFER order — shows the VietQR popup
   // before navigating away, instead of navigating immediately like COD does.
@@ -235,6 +237,16 @@ export default function CheckoutView() {
     setVoucherInput('');
     setVoucherError('');
   }
+
+  // Nút "Đặt hàng" chỉ mở bước xem lại; đơn chỉ được tạo khi khách xác nhận trong popup.
+  const openConfirm = () => {
+    if (!user) { openAuthModal(); return; }
+    if (!selectedAddressId) {
+      toast.error('Chưa chọn địa chỉ', 'Vui lòng chọn địa chỉ giao hàng.');
+      return;
+    }
+    setConfirmOpen(true);
+  };
 
   const handleSubmit = async () => {
     if (!user) { openAuthModal(); return; }
@@ -484,9 +496,9 @@ export default function CheckoutView() {
                   <dd className="tabular-nums font-medium">-{formatProductPrice(discountAmount)}</dd>
                 </div>
               )}
-              <div className="flex items-center justify-between gap-2 text-slate-400">
+              <div className="flex items-center justify-between gap-2 text-slate-500">
                 <dt>Phí vận chuyển</dt>
-                <dd className="text-xs">Tính khi xác nhận</dd>
+                <dd className="text-sm font-medium text-emerald-600">Miễn phí</dd>
               </div>
               <div className="flex items-baseline justify-between gap-2 border-t border-slate-100 pt-2">
                 <dt className="font-semibold text-slate-800">Tổng thanh toán</dt>
@@ -538,7 +550,7 @@ export default function CheckoutView() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5">
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={openConfirm}
               disabled={submitting || !selectedAddressId || addresses.length === 0}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
             >
@@ -565,6 +577,25 @@ export default function CheckoutView() {
           onClose={() => setAddFormOpen(false)}
         />
       )}
+
+      {confirmOpen && selectedAddressId && (() => {
+        const address = addresses.find(a => a.id === selectedAddressId);
+        if (!address) return null;
+        return (
+          <OrderConfirmModal
+            address={address}
+            items={session.items}
+            paymentLabel={PAYMENT_METHODS.find(pm => pm.value === paymentMethod)?.label ?? paymentMethod}
+            note={note}
+            voucherCode={voucherApplied?.code}
+            subtotal={subtotal}
+            discountAmount={discountAmount}
+            total={total}
+            onClose={() => setConfirmOpen(false)}
+            onConfirm={() => { setConfirmOpen(false); void handleSubmit(); }}
+          />
+        );
+      })()}
 
       {vietQr && (
         <VietQrPopup

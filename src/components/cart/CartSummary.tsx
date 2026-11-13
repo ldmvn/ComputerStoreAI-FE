@@ -35,7 +35,7 @@ export default function CartSummary({ total, itemCount, onCheckout }: CartSummar
             Tiếp tục đặt hàng
           </button>
           <p className="mt-3 text-xs leading-5 text-slate-500">
-            Phí vận chuyển và khuyến mãi (nếu có) chưa được tính vào tạm tính.
+            Miễn phí vận chuyển. Mã giảm giá (nếu có) được áp dụng ở bước thanh toán.
           </p>
         </>
       ) : (
