@@ -5,6 +5,7 @@ import { getAiStatus, postAiChat } from '@/services/ai.service';
 import { ApiRequestError } from '@/services/http.client';
 import { useAuthStore } from '@/store/auth.store';
 import { useChatContextStore } from '@/store/chatContext.store';
+import { useCartStore } from '@/store/cart.store';
 import type { AiStatus, ChatMessage, AiChatContext } from '@/types/ai.type';
 import { saveSession, loadSession, clearSession } from '@/lib/chatHistory';
 
@@ -81,7 +82,10 @@ export function useAIChat() {
 
     // Read at send time (not render time) so the hint always reflects the page open right now.
     const { productId: currentProductId, pageKey } = useChatContextStore.getState();
-    postAiChat({ message: trimmed, conversationId: activeConversation, context, pageKey, ...(currentProductId ? { currentProductId } : {}) }, token, controller.signal)
+    // Chỉ gửi giỏ khi đã đọc xong từ bộ nhớ trình duyệt, tránh báo "giỏ trống" nhầm lúc chưa tải.
+    const { items: cartItems, hydrated: cartHydrated } = useCartStore.getState();
+    const cart = cartHydrated ? cartItems.map(({ id, name, price, quantity }) => ({ id, name, price, quantity })) : undefined;
+    postAiChat({ message: trimmed, conversationId: activeConversation, context, pageKey, ...(currentProductId ? { currentProductId } : {}), ...(cart ? { cart } : {}) }, token, controller.signal)
       .then(res => {
         if (generation !== generationRef.current) return;
         conversationRef.current = res.data.conversationId;

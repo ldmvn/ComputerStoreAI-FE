@@ -11,12 +11,16 @@ export type AiStatus = {
 
 export type AiChatContext = 'general' | 'product_advice' | 'order_lookup' | 'build_pc' | 'faq';
 
+// Tóm tắt giỏ hàng (giỏ nằm ở trình duyệt, không có trên server) để chatbot trả lời về giỏ.
+export type AiCartItem = { id: number; name: string; price: number; quantity: number };
+
 export type AiChatRequest = {
   message: string;
   conversationId: string | null;
   context?: AiChatContext;
   currentProductId?: number;
   pageKey?: AiPageKey;
+  cart?: AiCartItem[];
 };
 
 export type AiCitation = {
