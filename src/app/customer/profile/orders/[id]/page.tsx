@@ -24,6 +24,9 @@ import VietQrPopup from '@/components/checkout/VietQrPopup';
 import type { Order, OrderItem, OrderStatus } from '@/types/order.type';
 import { PAYMENT_STATUS_LABEL, type Payment, type PaymentAttempt } from '@/types/payment.type';
 
+// Thời hạn đổi trả (ngày) kể từ ngày giao thành công; khớp với chính sách ở chân trang, /returns và /policy/return.
+const RETURN_WINDOW_DAYS = 14;
+
 const PAYMENT_STATUS_COLOR: Record<string, string> = {
   PENDING: 'text-amber-700 bg-amber-50',
   AWAITING_VERIFICATION: 'text-amber-700 bg-amber-50',
@@ -475,6 +478,10 @@ export default function OrderDetailPage() {
     : STATUS_META[order.status];
   const StatusIcon = meta.icon;
   const timeline = buildTimeline(order);
+  // Hạn đổi trả: 14 ngày từ ngày giao thành công (đơn cũ thiếu deliveredAt thì tính từ lần cập nhật cuối).
+  const returnDeadline = new Date(new Date(order.deliveredAt ?? order.updatedAt).getTime() + RETURN_WINDOW_DAYS * 86_400_000);
+  const returnDaysLeft = Math.ceil((returnDeadline.getTime() - Date.now()) / 86_400_000);
+  const returnExpired = returnDaysLeft <= 0;
   const total = order.subtotal - order.discountAmount;
   const paymentIcon = order.paymentMethod === 'COD' ? Banknote : order.paymentMethod === 'MOMO' ? Wallet : CreditCard;
   const PaymentIcon = paymentIcon;
@@ -588,15 +595,29 @@ export default function OrderDetailPage() {
                 Cần đổi trả sản phẩm?
               </h2>
               <p className="text-xs text-slate-500">
-                Sản phẩm lỗi hoặc chưa ưng ý? Hãy liên hệ cửa hàng trong vòng 14 ngày kể từ ngày giao hàng, kèm mã đơn #{order.id}. Cửa hàng sẽ hướng dẫn bạn đổi hoặc hoàn tiền.
+                {returnExpired
+                  ? `Đơn hàng này đã quá thời hạn đổi trả ${RETURN_WINDOW_DAYS} ngày (hết hạn ngày ${returnDeadline.toLocaleDateString('vi-VN')}). Nếu sản phẩm đang được bảo hành, bạn vẫn có thể xem chính sách bảo hành bên dưới.`
+                  : `Sản phẩm lỗi hoặc chưa ưng ý? Bạn còn ${returnDaysLeft} ngày để liên hệ cửa hàng (đến ${returnDeadline.toLocaleDateString('vi-VN')}), kèm mã đơn #${order.id}. Cửa hàng sẽ hướng dẫn bạn đổi hoặc hoàn tiền.`}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
-                <Link href="/customer/profile/support" className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">
-                  Gửi yêu cầu hỗ trợ
-                </Link>
+                {/* Mở bảng liên hệ nổi (Zalo, Messenger, hotline, chat) ở góc phải màn hình; ẩn khi quá hạn */}
+                {!returnExpired && (
+                  <button
+                    type="button"
+                    onClick={() => window.dispatchEvent(new Event('open-support-widget'))}
+                    className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700"
+                  >
+                    Liên hệ admin
+                  </button>
+                )}
                 <Link href="/returns" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                   Xem chính sách đổi trả
                 </Link>
+                {returnExpired && (
+                  <Link href="/policy/warranty" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                    Xem chính sách bảo hành
+                  </Link>
+                )}
               </div>
             </div>
           )}

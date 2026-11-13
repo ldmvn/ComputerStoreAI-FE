@@ -35,6 +35,13 @@ export default function FloatingSupportWidget() {
 
   const closeAll = () => { setIsOpen(false); setView('support'); };
 
+  // Các nút "Liên hệ admin" ở trang khác (ví dụ chi tiết đơn hàng) mở bảng liên hệ này qua sự kiện của window.
+  useEffect(() => {
+    const open = () => { setView('support'); setIsOpen(true); };
+    window.addEventListener('open-support-widget', open);
+    return () => window.removeEventListener('open-support-widget', open);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) return;
     const onPointerDown = (event: MouseEvent) => {
