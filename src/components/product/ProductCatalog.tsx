@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowDownWideNarrow, ArrowUpNarrowWide, Flame, SlidersHorizontal, Star, X, Zap } from 'lucide-react';
+import { ArrowDownWideNarrow, ArrowUpNarrowWide, Flame, SlidersHorizontal, Star, Zap } from 'lucide-react';
 import {
   getPublicProductFilters,
   getPublicProducts,
@@ -256,24 +256,6 @@ export default function ProductCatalog() {
         </div>
         {sortBar}
       </div>
-
-      {chips.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {chips.map(chip => (
-            <span key={chip.id} className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-primary-50 py-1 pl-3 pr-2 text-sm text-primary-800">
-              <span className="truncate">{chip.label}: {chip.value}</span>
-              <button
-                type="button"
-                onClick={() => navigate({ ...chip.clear, page: '1' })}
-                aria-label={`Xóa bộ lọc ${chip.label}`}
-                className="shrink-0 rounded-full p-0.5 hover:bg-primary-100"
-              >
-                <X className="h-3 w-3" aria-hidden="true" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
 
       <div className="flex items-start gap-5">
         <FilterSidebar
