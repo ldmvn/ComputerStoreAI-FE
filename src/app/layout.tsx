@@ -4,6 +4,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import MaintenanceOverlay from '@/components/layout/MaintenanceOverlay';
 import { SERVER_API_BASE_URL } from '@/services/http.client';
+import { SITE_URL } from '@/lib/site';
 import './globals.css';
 import '@/styles/interactions.css';
 
@@ -60,9 +61,14 @@ export async function generateMetadata(): Promise<Metadata> {
   const [{ faviconUrl, version }, seo] = await Promise.all([getBrandingMeta(), getSeoMeta()]);
   const icon = resolveIconUrl(faviconUrl, version);
   const siteName = seo.title || 'DUCMANH';
+  // Mô tả mặc định khi admin chưa nhập "seo.description" trong Cài đặt SEO; cũng là dòng mô tả khi chia sẻ link.
+  const description = seo.description || 'Cửa hàng PC và linh kiện chính hãng';
+  // Ảnh chia sẻ 1200 × 630 khai báo rõ ràng (og:image) để Facebook/Zalo không tự đoán rồi cắt logo.
+  const shareImage = { url: '/og-image.png', width: 1200, height: 630, alt: siteName };
   return {
+    metadataBase: new URL(SITE_URL),
     title: siteName,
-    description: seo.description || 'Cửa hàng PC & Laptop chính hãng',
+    description,
     ...(seo.keywords ? { keywords: seo.keywords } : {}),
     icons: { icon },
     verification: { google: 'fqI4LETojnhQfG71TrBEmKGCpGgBReLVP3afw-pzJUw' },
@@ -70,6 +76,17 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       siteName,
       type: 'website',
+      locale: 'vi_VN',
+      url: '/',
+      title: siteName,
+      description,
+      images: [shareImage],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: siteName,
+      description,
+      images: [shareImage.url],
     },
   };
 }
