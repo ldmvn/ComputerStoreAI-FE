@@ -7,22 +7,27 @@ export const BANNER_POSITIONS: { position: BannerPosition; group: BannerGroup; l
   { position: 'BOTTOM_LEFT', group: 'SIDE', label: 'Banner dưới trái' },
   { position: 'SIDE_RIGHT_MIDDLE', group: 'SIDE', label: 'Banner dưới giữa' },
   { position: 'BOTTOM_RIGHT', group: 'SIDE', label: 'Banner dưới phải' },
+  { position: 'BOTTOM_4', group: 'SIDE', label: 'Banner dưới thứ 4' },
   { position: 'SIDE_LEFT', group: 'SIDE', label: 'Banner dọc trái (Không hiển thị ở Storefront)' },
 ];
 export const positionLabel = (position: BannerPosition) => BANNER_POSITIONS.find(item => item.position === position)?.label || position;
 export const IMAGE_LIMIT = 10 * 1024 * 1024;
 export const VIDEO_LIMIT = 50 * 1024 * 1024;
-export const AUTO_SIDE_ORDER: BannerPosition[] = ['BOTTOM_LEFT', 'SIDE_RIGHT_MIDDLE', 'BOTTOM_RIGHT', 'SIDE_RIGHT_TOP', 'SIDE_RIGHT_BOTTOM', 'SIDE_LEFT'];
+export const AUTO_SIDE_ORDER: BannerPosition[] = ['BOTTOM_LEFT', 'SIDE_RIGHT_MIDDLE', 'BOTTOM_RIGHT', 'BOTTOM_4', 'SIDE_RIGHT_TOP', 'SIDE_RIGHT_BOTTOM', 'SIDE_LEFT'];
+
+// Bốn banner ngang ở hàng dưới (giống HACOM) dùng chung tỉ lệ ảnh 640 × 293.
+export const BOTTOM_BANNER_SIZE = { width: 640, height: 293 } as const;
+const BOTTOM_ASPECT = BOTTOM_BANNER_SIZE.width / BOTTOM_BANNER_SIZE.height;
+export const isBottomPosition = (position: BannerPosition) =>
+  position === 'BOTTOM_LEFT' || position === 'SIDE_RIGHT_MIDDLE' || position === 'BOTTOM_RIGHT' || position === 'BOTTOM_4';
 
 // Layout theo đúng mẫu HACOM:
 //   MAIN_HERO: 2:1 trên mobile, 16:7 từ ≥769px
 //   RIGHT slots (2 banner dọc bên phải): ~16:11 trên desktop (≥1280px)
-//   BOTTOM slots (3 banner ngang dưới): 16:5.5 trên desktop (≥1280px), 8:3 trên tablet (768-1279px)
+//   BOTTOM slots (4 banner ngang dưới): 640:293 (4 cột trên desktop, 2 cột trên tablet)
 export function bannerAspectRatio(position: BannerPosition, viewportWidth: number) {
   if (position === 'MAIN_HERO') return viewportWidth >= 769 ? 16 / 7 : 2;
-  if (position === 'BOTTOM_LEFT' || position === 'BOTTOM_RIGHT' || position === 'SIDE_RIGHT_MIDDLE') {
-    return viewportWidth >= 1280 ? 16 / 5.5 : viewportWidth >= 768 ? 8 / 3 : 16 / 7;
-  }
+  if (isBottomPosition(position)) return BOTTOM_ASPECT;
   if (position === 'SIDE_RIGHT_TOP' || position === 'SIDE_RIGHT_BOTTOM') {
     return 16 / 11;
   }
@@ -35,8 +40,8 @@ export const bannerRecommendation = (position: BannerPosition, ratio: number) =>
     return 'Khuyến nghị: 1600 × 700 px (tỉ lệ 16:7, hiển thị từ 769px). Mobile dùng tỉ lệ 2:1 — ảnh sẽ được crop ở giữa.';
   if (position === 'SIDE_RIGHT_TOP' || position === 'SIDE_RIGHT_BOTTOM')
     return 'Khuyến nghị: 600 × 412 px (tỉ lệ ~16:11, 2 banner xếp dọc bên phải). Ảnh được crop ở giữa.';
-  if (position === 'BOTTOM_LEFT' || position === 'SIDE_RIGHT_MIDDLE' || position === 'BOTTOM_RIGHT')
-    return 'Khuyến nghị: 800 × 275 px (tỉ lệ 16:5.5 desktop, 8:3 tablet, 3 banner ngang dưới Hero). Ảnh được crop ở giữa.';
+  if (isBottomPosition(position))
+    return `Khuyến nghị: ${BOTTOM_BANNER_SIZE.width} × ${BOTTOM_BANNER_SIZE.height} px (4 banner ngang dưới Hero: 4 cột trên desktop, 2 cột trên tablet). Ảnh khác tỉ lệ sẽ được crop ở giữa.`;
   return `Kích thước khuyến nghị: 800 × ${Math.round(800 / ratio)} px hoặc cùng tỉ lệ. Media khác tỉ lệ sẽ được crop ở giữa.`;
 };
 export const dateLabel = (date: string) => new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Bangkok' }).format(new Date(date));

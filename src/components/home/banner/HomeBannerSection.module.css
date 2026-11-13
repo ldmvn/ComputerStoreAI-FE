@@ -66,6 +66,12 @@
   display: none !important;
 }
 
+/* 3–4 banner: ảnh chuẩn 640 × 293 (4 banner: lưới 2 × 2 trên tablet, 4 cột trên desktop) */
+.tripleBottom .bottomSlot,
+.quadBottom .bottomSlot {
+  aspect-ratio: 640 / 293;
+}
+
 .singleBottom {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -178,6 +184,10 @@
 
   .desktopOnlySlot {
     display: block !important;
+  }
+
+  .quadBottom {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .doubleBottom {

@@ -280,24 +280,28 @@ export default function BannerLayoutPreview({
               </div>
             </div>
 
-            {/* HÀNG DƯỚI: Đúng 3 banner ngang bằng nhau trải toàn bộ chiều rộng Preview */}
-            <div className="grid grid-cols-3 gap-2.5 w-full min-w-0">
+            {/* HÀNG DƯỚI: 4 banner ngang bằng nhau trải toàn bộ chiều rộng Preview, ảnh 640 × 293 */}
+            <div className="grid grid-cols-4 gap-2.5 w-full min-w-0">
               {renderSlotBox('BOTTOM_LEFT', 'Dưới trái', 'w-full', {
-                aspectRatio: '16 / 5.5',
-                aspectLabel: '16:5.5',
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
               })}
               {renderSlotBox('SIDE_RIGHT_MIDDLE', 'Dưới giữa', 'w-full', {
-                aspectRatio: '16 / 5.5',
-                aspectLabel: '16:5.5',
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
               })}
               {renderSlotBox('BOTTOM_RIGHT', 'Dưới phải', 'w-full', {
-                aspectRatio: '16 / 5.5',
-                aspectLabel: '16:5.5',
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
+              })}
+              {renderSlotBox('BOTTOM_4', 'Dưới thứ 4', 'w-full', {
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
               })}
             </div>
 
             <p className="text-[11px] text-slate-500">
-              * Tỷ lệ chuẩn HACOM Storefront: Cột danh mục (19%), Hero chính (57%), 2 Banner phải (24%), 3 Banner ngang phía dưới (16:5.5).
+              * Tỷ lệ chuẩn HACOM Storefront: Cột danh mục (19%), Hero chính (57%), 2 Banner phải (24%), 4 Banner ngang phía dưới (ảnh 640 × 293).
             </p>
           </div>
         )}
@@ -313,22 +317,30 @@ export default function BannerLayoutPreview({
               })}
             </div>
 
-            {/* 2 Banner phụ ngang ở hàng dưới: 8:3 trên Tablet */}
+            {/* 4 Banner phụ ở hàng dưới: lưới 2 × 2, ảnh 640 × 293 */}
             <div className="grid grid-cols-2 gap-2.5 w-full min-w-0">
               {renderSlotBox('BOTTOM_LEFT', 'Dưới trái (BOTTOM_LEFT)', 'w-full', {
-                aspectRatio: '8 / 3',
-                aspectLabel: '8:3',
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
+              })}
+              {renderSlotBox('SIDE_RIGHT_MIDDLE', 'Dưới giữa (SIDE_RIGHT_MIDDLE)', 'w-full', {
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
               })}
               {renderSlotBox('BOTTOM_RIGHT', 'Dưới phải (BOTTOM_RIGHT)', 'w-full', {
-                aspectRatio: '8 / 3',
-                aspectLabel: '8:3',
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
+              })}
+              {renderSlotBox('BOTTOM_4', 'Dưới thứ 4 (BOTTOM_4)', 'w-full', {
+                aspectRatio: '640 / 293',
+                aspectLabel: '640×293',
               })}
             </div>
 
             <div className="rounded-lg bg-amber-50/80 p-2.5 text-[11px] text-amber-800 border border-amber-200/60">
               <p className="font-medium">Cấu hình Tablet (768–1279px):</p>
               <p className="text-amber-700 mt-0.5">
-                Hiển thị MAIN_HERO và 2 banner phụ (Dưới trái, Dưới phải). Các vị trí phải và dưới giữa tự động ẩn trên Storefront.
+                Hiển thị MAIN_HERO và 4 banner phụ dạng lưới 2 × 2 khi đủ 4 banner. Chỉ có 3 banner thì tablet ẩn banner dưới giữa. Các vị trí phải trên và phải dưới tự động ẩn.
               </p>
             </div>
           </div>

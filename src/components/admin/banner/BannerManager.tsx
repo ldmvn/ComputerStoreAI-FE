@@ -28,6 +28,7 @@ const STOREFRONT_POSITIONS: BannerPosition[] = [
   'BOTTOM_LEFT',
   'SIDE_RIGHT_MIDDLE',
   'BOTTOM_RIGHT',
+  'BOTTOM_4',
 ];
 
 const SLOT_METADATA: Record<
@@ -66,6 +67,12 @@ const SLOT_METADATA: Record<
   },
   BOTTOM_RIGHT: {
     label: 'Banner dưới phải',
+    deviceLabel: 'Hiển thị: Desktop & Tablet',
+    deviceBadgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+    isStorefront: true,
+  },
+  BOTTOM_4: {
+    label: 'Banner dưới thứ 4',
     deviceLabel: 'Hiển thị: Desktop & Tablet',
     deviceBadgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
     isStorefront: true,

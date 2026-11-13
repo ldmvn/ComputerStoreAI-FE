@@ -53,11 +53,12 @@ export default function HomeBannerSection() {
     { position: 'SIDE_RIGHT_BOTTOM', banners: slides('SIDE_RIGHT_BOTTOM', data?.sideRightBottom), label: 'Banner phải dưới' },
   ];
 
-  // Hàng dưới: Đúng 3 banner ngang bằng nhau trải toàn bộ chiều rộng container
+  // Hàng dưới: tối đa 4 banner ngang bằng nhau trải toàn bộ chiều rộng container (ảnh 640 × 293)
   const bottomSlots: { position: BannerPosition; banners: Banner[]; label: string }[] = [
     { position: 'BOTTOM_LEFT', banners: slides('BOTTOM_LEFT', data?.bottomLeft), label: 'Banner dưới trái' },
     { position: 'SIDE_RIGHT_MIDDLE', banners: slides('SIDE_RIGHT_MIDDLE', data?.sideRightMiddle), label: 'Banner dưới giữa' },
     { position: 'BOTTOM_RIGHT', banners: slides('BOTTOM_RIGHT', data?.bottomRight), label: 'Banner dưới phải' },
+    { position: 'BOTTOM_4', banners: slides('BOTTOM_4', data?.bottom4), label: 'Banner dưới thứ 4' },
   ];
 
   const visibleRight = rightSlots.filter(item => loading || item.banners.length);
@@ -65,6 +66,8 @@ export default function HomeBannerSection() {
   const hasLeft = true;
 
   const slot = `relative min-w-0 overflow-hidden rounded-xl ${loading ? '' : 'ui-banner'}`;
+  // Hàng banner dưới bo góc lớn hơn để che phần góc trong suốt của ảnh (ảnh có viền bo riêng).
+  const bottomSlotClass = slot.replace('rounded-xl', 'rounded-3xl');
 
   const renderSideBanner = (item: (typeof rightSlots)[number], className: string) => (
     <div key={item.position} className={`${slot} ${className}`} data-banner-position={item.position}>
@@ -107,18 +110,21 @@ export default function HomeBannerSection() {
               ? styles.singleBottom
               : visibleBottom.length === 2
                 ? styles.doubleBottom
-                : styles.tripleBottom
+                : visibleBottom.length === 3
+                  ? styles.tripleBottom
+                  : styles.quadBottom
           }`}
         >
           {visibleBottom.map(item => {
             // Thứ tự ưu tiên nhất quán cho Tablet (768-1279px):
             // Khi đủ 3 banner, Tablet hiển thị 2 banner (BOTTOM_LEFT và BOTTOM_RIGHT);
             // SIDE_RIGHT_MIDDLE (dưới giữa) được dành cho bố cục 3 cột trên Desktop (>=1280px).
-            const isDesktopOnly = item.position === 'SIDE_RIGHT_MIDDLE' && visibleBottom.length >= 3;
+            // Đủ 4 banner thì tablet hiện cả 4 (lưới 2 × 2), không ẩn banner nào.
+            const isDesktopOnly = item.position === 'SIDE_RIGHT_MIDDLE' && visibleBottom.length === 3;
             return (
               <div
                 key={item.position}
-                className={`${slot} ${styles.bottomSlot} ${isDesktopOnly ? styles.desktopOnlySlot : ''}`}
+                className={`${bottomSlotClass} ${styles.bottomSlot} ${isDesktopOnly ? styles.desktopOnlySlot : ''}`}
                 data-banner-position={item.position}
               >
                 {loading ? (

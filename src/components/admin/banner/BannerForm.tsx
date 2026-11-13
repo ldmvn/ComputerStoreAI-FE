@@ -272,10 +272,11 @@ export default function BannerForm({
                   <option value="SIDE_RIGHT_TOP">Banner phải trên — SIDE_RIGHT_TOP</option>
                   <option value="SIDE_RIGHT_BOTTOM">Banner phải dưới — SIDE_RIGHT_BOTTOM</option>
                 </optgroup>
-                <optgroup label="Banner phụ bên dưới (3 vị trí ngang)">
+                <optgroup label="Banner phụ bên dưới (4 vị trí ngang, ảnh 640 × 293)">
                   <option value="BOTTOM_LEFT">Banner dưới trái — BOTTOM_LEFT</option>
                   <option value="SIDE_RIGHT_MIDDLE">Banner dưới giữa — SIDE_RIGHT_MIDDLE</option>
                   <option value="BOTTOM_RIGHT">Banner dưới phải — BOTTOM_RIGHT</option>
+                  <option value="BOTTOM_4">Banner dưới thứ 4 — BOTTOM_4</option>
                 </optgroup>
                 <optgroup label="Vị trí chưa sử dụng (Lưu trữ)">
                   <option value="SIDE_LEFT">Banner dọc trái (Không hiển thị Storefront) — SIDE_LEFT</option>

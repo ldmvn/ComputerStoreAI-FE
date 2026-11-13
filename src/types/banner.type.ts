@@ -1,5 +1,5 @@
 export type BannerGroup = 'MAIN' | 'SIDE';
-export type BannerPosition = 'MAIN_HERO' | 'BOTTOM_LEFT' | 'BOTTOM_RIGHT' | 'SIDE_LEFT' | 'SIDE_RIGHT_TOP' | 'SIDE_RIGHT_MIDDLE' | 'SIDE_RIGHT_BOTTOM';
+export type BannerPosition = 'MAIN_HERO' | 'BOTTOM_LEFT' | 'BOTTOM_RIGHT' | 'BOTTOM_4' | 'SIDE_LEFT' | 'SIDE_RIGHT_TOP' | 'SIDE_RIGHT_MIDDLE' | 'SIDE_RIGHT_BOTTOM';
 export type BannerPositionSelection = BannerPosition | 'AUTO';
 export type MediaType = 'IMAGE' | 'VIDEO';
 
@@ -25,6 +25,7 @@ export type HomeBanners = {
   mainHero: Banner[];
   bottomLeft: Banner | null;
   bottomRight: Banner | null;
+  bottom4?: Banner | null;
   sideLeft: Banner | null;
   sideRightTop: Banner | null;
   sideRightMiddle: Banner | null;

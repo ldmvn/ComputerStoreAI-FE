@@ -40,9 +40,9 @@ export default function BottomPromoBanner({
   const hasOverlay = Boolean(title || description || canShowCta);
 
   const content = (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200/90 bg-slate-900 group shadow-sm transition-all duration-300 hover:border-primary-300 hover:shadow-md">
-      {/* Media Background */}
-      <div className="absolute inset-0 h-full w-full overflow-hidden transition-transform duration-500 ease-out group-hover:scale-105">
+    <div className="relative h-full w-full overflow-hidden rounded-3xl bg-white group transition-all duration-300 hover:shadow-md">
+      {/* Media Background: phóng nhẹ 3% để cắt bỏ mép ngoài và góc bo sẵn trong file ảnh */}
+      <div className="absolute inset-0 h-full w-full scale-[1.03] overflow-hidden transition-transform duration-500 ease-out group-hover:scale-[1.08]">
         <BannerMedia banner={active} fit="cover" />
       </div>
 
