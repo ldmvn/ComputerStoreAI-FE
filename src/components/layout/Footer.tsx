@@ -30,7 +30,7 @@ const policyLinks = [
 const trustBadges = [
   { icon: Shield,     label: 'Bảo hành chính hãng' },
   { icon: Truck,      label: 'Giao hàng toàn quốc' },
-  { icon: RotateCcw,  label: 'Đổi trả 30 ngày' },
+  { icon: RotateCcw,  label: 'Đổi trả 14 ngày' },
   { icon: CreditCard, label: 'Thanh toán an toàn' },
 ];
 

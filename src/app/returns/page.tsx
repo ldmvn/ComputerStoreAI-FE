@@ -25,12 +25,12 @@ export default function ReturnsPage() {
         toc={toc}
       >
         <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-800">
-          <strong className="font-semibold">Cam kết đổi trả trong 7 ngày</strong> — nếu sản phẩm lỗi hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ đổi ngay.
+          <strong className="font-semibold">Cam kết đổi trả trong 14 ngày</strong> — nếu sản phẩm lỗi hoặc không đúng mô tả, chúng tôi sẽ hỗ trợ đổi ngay.
         </div>
 
         <Section id="dieu-kien" title="1. Điều kiện đổi trả hợp lệ">
           <ul className="list-disc pl-5 space-y-1">
-            <li>Sản phẩm còn trong thời hạn đổi trả (7 ngày kể từ ngày nhận hàng).</li>
+            <li>Sản phẩm còn trong thời hạn đổi trả (14 ngày kể từ ngày giao hàng thành công).</li>
             <li>Còn nguyên hộp, phụ kiện, tem niêm phong đầy đủ như khi mua.</li>
             <li>Có hóa đơn mua hàng hoặc xác nhận đơn từ hệ thống.</li>
             <li>Lỗi thuộc về nhà sản xuất hoặc do DUCMANH PC giao sai sản phẩm.</li>

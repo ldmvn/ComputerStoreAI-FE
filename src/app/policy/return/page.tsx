@@ -61,7 +61,7 @@ export default async function ReturnPolicyPage() {
         </Section>
 
         <Section id="thoi-han" title="2. Thời hạn đổi trả">
-          <p>Khách hàng có quyền yêu cầu đổi/trả trong vòng 7 ngày kể từ ngày nhận hàng, với điều kiện sản phẩm còn nguyên vẹn và đáp ứng các điều kiện nêu trên.</p>
+          <p>Khách hàng có quyền yêu cầu đổi/trả trong vòng 14 ngày kể từ ngày giao hàng thành công, với điều kiện sản phẩm còn nguyên vẹn và đáp ứng các điều kiện nêu trên.</p>
         </Section>
 
         <Section id="hang-khong-doi" title="3. Sản phẩm không áp dụng đổi trả">

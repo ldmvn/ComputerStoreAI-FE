@@ -580,6 +580,27 @@ export default function OrderDetailPage() {
             </div>
           )}
 
+          {/* Delivered — đổi trả xử lý trực tiếp qua hỗ trợ, không có form riêng */}
+          {order.status === 'DELIVERED' && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+              <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <RotateCcw className="h-4 w-4 text-primary-600" aria-hidden="true" />
+                Cần đổi trả sản phẩm?
+              </h2>
+              <p className="text-xs text-slate-500">
+                Sản phẩm lỗi hoặc chưa ưng ý? Hãy liên hệ cửa hàng trong vòng 14 ngày kể từ ngày giao hàng, kèm mã đơn #{order.id}. Cửa hàng sẽ hướng dẫn bạn đổi hoặc hoàn tiền.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link href="/customer/profile/support" className="rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-700">
+                  Gửi yêu cầu hỗ trợ
+                </Link>
+                <Link href="/returns" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                  Xem chính sách đổi trả
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Delivered — review section */}
           {order.status === 'DELIVERED' && (
             <div className="rounded-2xl border border-primary-100 bg-primary-50/40 p-5">
