@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowDown, ArrowUp, ChevronDown, ChevronRight,
-  Edit3, Eye, EyeOff, Filter, LayoutGrid, Megaphone, PackageOpen, Plus, ShoppingBag, Trash2, X,
+  Edit3, Eye, EyeOff, Filter, LayoutGrid, Megaphone, PackageOpen, Plus, ShoppingBag, Trash2, X, Zap,
 } from 'lucide-react';
 import AdminPageHeader from '@/components/admin/AdminPageHeader';
 import AdminFeedback from '@/components/admin/AdminFeedback';
@@ -12,10 +12,11 @@ import { adminActionButtonClass, adminActionGroupClass } from '@/components/admi
 import EmptyState from '@/components/ui/EmptyState';
 import Modal from '@/components/ui/Modal';
 import { useAuthStore } from '@/store/auth.store';
-import type { ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, QuickFilterTab, SectionProduct } from '@/types/productSection.type';
+import type { EventSectionInput, ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, QuickFilterTab, SectionProduct } from '@/types/productSection.type';
 import { mediaUrl } from '@/services/http.client';
 import {
   addProductsToSection,
+  createEventSection,
   createProductSection,
   createPromotionalSection,
   deleteProductSection,
@@ -25,6 +26,7 @@ import {
   reorderSectionProducts,
   saveQuickFilterConfig,
   setProductSectionStatus,
+  updateEventSection,
   updateProductSection,
   updatePromotionalSection,
 } from '@/services/productSection.service';
@@ -34,6 +36,7 @@ import { getAttributes, type Attribute } from '@/services/attribute.service';
 import ProductPicker from './ProductPicker';
 import ProductSectionForm from './ProductSectionForm';
 import PromotionalSectionForm from './PromotionalSectionForm';
+import EventSectionForm from './EventSectionForm';
 
 const btn = adminActionButtonClass;
 
@@ -463,20 +466,33 @@ function QuickFilterEditor({
   );
 }
 
+const formatEventTime = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '');
+
 function sectionVisibility(section: ProductSection) {
   if (!section.isActive) return { label: 'Đang ẩn', cls: 'text-slate-400' };
   if (section.type === 'PROMOTIONAL_SECTION') return { label: 'Đang hiển thị trên trang chủ', cls: 'text-green-600' };
   if (!section.products.length) return { label: 'Chưa có sản phẩm — không hiển thị', cls: 'text-amber-600' };
+  if (section.type === 'EVENT_SECTION') {
+    const now = Date.now();
+    const start = section.startsAt ? new Date(section.startsAt).getTime() : 0;
+    const end = section.endsAt ? new Date(section.endsAt).getTime() : 0;
+    if (now < start) return { label: `Chưa bắt đầu — hiện từ ${formatEventTime(section.startsAt)}`, cls: 'text-blue-600' };
+    if (now >= end) return { label: `Đã kết thúc lúc ${formatEventTime(section.endsAt)} — không hiển thị`, cls: 'text-slate-400' };
+    return { label: `Đang diễn ra — kết thúc ${formatEventTime(section.endsAt)}`, cls: 'text-green-600' };
+  }
   return { label: 'Đang hiển thị trên trang chủ', cls: 'text-green-600' };
 }
 
 function ProductRow({
-  product, index, total, busy,
+  product, index, total, busy, showPrice = false,
   onMoveTo, onRemove,
 }: {
   product: SectionProduct; index: number; total: number; busy: boolean;
+  // Khối sự kiện: hiện giá và cảnh báo sản phẩm chưa có giá gốc (thẻ sẽ không có nhãn giảm giá).
+  showPrice?: boolean;
   onMoveTo: (toIndex: number) => void; onRemove: () => void;
 }) {
+  const noDiscount = showPrice && !(typeof product.originalPrice === 'number' && product.originalPrice > product.price);
   const outOfStock = typeof product.stockQuantity === 'number' && product.stockQuantity === 0;
   const hidden = product.isActive === false;
 
@@ -556,6 +572,11 @@ function ProductRow({
           {product.sku && <span className="font-mono text-[11px] text-slate-400">{product.sku}</span>}
           {hidden && <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">Đang ẩn</span>}
           {outOfStock && <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-600">Hết hàng</span>}
+          {showPrice && <span className="text-[11px] font-semibold text-slate-600">{product.price.toLocaleString('vi-VN')}đ</span>}
+          {showPrice && product.originalPrice != null && product.originalPrice > product.price && (
+            <span className="text-[11px] text-slate-400 line-through">{product.originalPrice.toLocaleString('vi-VN')}đ</span>
+          )}
+          {noDiscount && <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700" title="Đặt giá gốc cao hơn giá bán trong trang sản phẩm để hiện nhãn giảm giá">Chưa có giá gốc — không hiện nhãn giảm giá</span>}
         </div>
       </div>
 
@@ -573,6 +594,7 @@ export default function ProductSectionManager() {
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [editor, setEditor] = useState<ProductSection | null | undefined>(undefined);
   const [promoEditor, setPromoEditor] = useState<ProductSection | null | undefined>(undefined);
+  const [eventEditor, setEventEditor] = useState<ProductSection | null | undefined>(undefined);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [pickerSectionId, setPickerSectionId] = useState<number | null>(null);
   const [deleting, setDeleting] = useState<ProductSection | null>(null);
@@ -615,6 +637,12 @@ export default function ProductSectionManager() {
     setEditor(undefined);
   }, editor ? 'Đã cập nhật khối sản phẩm.' : 'Đã tạo khối sản phẩm.');
 
+  const saveEvent = (input: EventSectionInput) => void action(async () => {
+    if (eventEditor) await updateEventSection(token!, eventEditor.id, input);
+    else await createEventSection(token!, input);
+    setEventEditor(undefined);
+  }, eventEditor ? 'Đã cập nhật khối sự kiện.' : 'Đã tạo khối sự kiện. Mở rộng khối để thêm sản phẩm.');
+
   const savePromo = (input: PromotionalSectionInput) => void action(async () => {
     if (promoEditor) await updatePromotionalSection(token!, promoEditor.id, input);
     else await createPromotionalSection(token!, input);
@@ -623,6 +651,7 @@ export default function ProductSectionManager() {
 
   const openEditor = (section: ProductSection) => {
     if (section.type === 'PROMOTIONAL_SECTION') setPromoEditor(section);
+    else if (section.type === 'EVENT_SECTION') setEventEditor(section);
     else setEditor(section);
   };
 
@@ -689,6 +718,17 @@ export default function ProductSectionManager() {
                       <span className="block text-xs font-normal text-slate-400">Banner nổi bật với CTA</span>
                     </span>
                   </button>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-3 border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    onClick={() => { setCreateMenuOpen(false); setEventEditor(null); }}
+                  >
+                    <Zap className="h-4 w-4 shrink-0 text-violet-600" />
+                    <span>
+                      <span className="block">Khối sự kiện</span>
+                      <span className="block text-xs font-normal text-slate-400">Flash sale theo thời gian</span>
+                    </span>
+                  </button>
                 </div>
               </>
             )}
@@ -738,9 +778,12 @@ export default function ProductSectionManager() {
                     {section.type === 'PROMOTIONAL_SECTION' ? (
                       <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Quảng bá</span>
                     ) : (
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        {section.products.length}
-                      </span>
+                      <>
+                        {section.type === 'EVENT_SECTION' && <span className="shrink-0 rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">Sự kiện</span>}
+                        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                          {section.products.length}
+                        </span>
+                      </>
                     )}
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${section.isActive ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
                       {section.isActive ? 'Active' : 'Ẩn'}
@@ -756,7 +799,7 @@ export default function ProductSectionManager() {
                     <button type="button" className={btn} onClick={() => openEditor(section)} aria-label="Sửa khối">
                       <Edit3 className="h-3.5 w-3.5" />Sửa
                     </button>
-                    {section.type !== 'PROMOTIONAL_SECTION' && (
+                    {section.type === 'PRODUCT_SECTION' && (
                       <button type="button" className={btn} onClick={() => setQuickFilterSectionId(section.id)} aria-label="Cấu hình Quick Filter">
                         <Filter className="h-3.5 w-3.5" />Filter
                       </button>
@@ -808,6 +851,7 @@ export default function ProductSectionManager() {
                             index={pIdx}
                             total={section.products.length}
                             busy={busy}
+                            showPrice={section.type === 'EVENT_SECTION'}
                             onMoveTo={toIndex => moveProductToPosition(section, product.id, toIndex)}
                             onRemove={() => void action(
                               () => removeProductFromSection(token!, section.id, product.id),
@@ -837,6 +881,10 @@ export default function ProductSectionManager() {
           onClose={() => setPromoEditor(undefined)}
           onSave={savePromo}
         />
+      )}
+
+      {eventEditor !== undefined && (
+        <EventSectionForm section={eventEditor || undefined} busy={busy} onClose={() => setEventEditor(undefined)} onSave={saveEvent} />
       )}
 
       {pickerSection && (

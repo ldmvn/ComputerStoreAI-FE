@@ -1,4 +1,4 @@
-import type { ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, SectionProduct } from '@/types/productSection.type';
+import type { EventSectionInput, ProductSection, ProductSectionInput, PromotionalSectionInput, QuickFilterConfig, SectionProduct } from '@/types/productSection.type';
 import { apiRequest } from './http.client';
 
 export const getHomeProductSections = (signal?: AbortSignal) => apiRequest<{ sections: ProductSection[] }>('/product-sections/home', { signal });
@@ -20,6 +20,12 @@ export const createPromotionalSection = (token: string | null, body: Promotional
   apiRequest<{ section: ProductSection; message: string }>('/admin/product-sections', { method: 'POST', body: JSON.stringify(body) }, token);
 
 export const updatePromotionalSection = (token: string | null, id: number, body: PromotionalSectionInput) =>
+  apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
+
+export const createEventSection = (token: string | null, body: EventSectionInput) =>
+  apiRequest<{ section: ProductSection; message: string }>('/admin/product-sections', { method: 'POST', body: JSON.stringify(body) }, token);
+
+export const updateEventSection = (token: string | null, id: number, body: EventSectionInput) =>
   apiRequest<{ section: ProductSection; message: string }>(`/admin/product-sections/${id}`, { method: 'PUT', body: JSON.stringify(body) }, token);
 
 export async function uploadPromoSectionImage(token: string | null, id: number, file: File): Promise<ProductSection> {

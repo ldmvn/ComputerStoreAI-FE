@@ -121,6 +121,29 @@ body {
   }
 }
 
+/* Đồng hồ báo thức trên ruy băng khối sự kiện: rung lắc như đang reo (khoảng 0,7s) rồi nghỉ, lặp lại. */
+@keyframes event-alarm-ring {
+  0%, 50%, 100% { transform: rotate(0deg) translateY(0); }
+  4% { transform: rotate(-14deg) translateY(-2px); }
+  8% { transform: rotate(14deg) translateY(-3px); }
+  12% { transform: rotate(-12deg) translateY(-2px); }
+  16% { transform: rotate(12deg) translateY(-3px); }
+  20% { transform: rotate(-9deg) translateY(-1px); }
+  24% { transform: rotate(9deg) translateY(-2px); }
+  28% { transform: rotate(-5deg) translateY(0); }
+  32% { transform: rotate(5deg) translateY(-1px); }
+  36% { transform: rotate(0deg) translateY(0); }
+}
+
+.event-alarm {
+  transform-origin: 50% 75%;
+  animation: event-alarm-ring 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event-alarm { animation: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton-shimmer::after {
     animation: none;

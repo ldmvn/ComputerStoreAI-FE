@@ -7,6 +7,7 @@ import { getHomeProductSections } from '@/services/productSection.service';
 import type { ProductSection, QuickFilterTab } from '@/types/productSection.type';
 import ProductCard from './ProductCard';
 import PromotionalSection from './PromotionalSection';
+import EventSection from './EventSection';
 import { FadeIn } from '@/components/ui/motion/ScrollReveal';
 import styles from './HomeProductSections.module.css';
 
@@ -160,7 +161,11 @@ export default function HomeProductSections() {
           </div>
         </div>
       ) : visibleSections.map((section, sectionIndex) => (
-        section.type === 'PROMOTIONAL_SECTION' ? (
+        section.type === 'EVENT_SECTION' ? (
+          <FadeIn key={section.id} delay={sectionIndex * 0.05}>
+            <EventSection section={section} />
+          </FadeIn>
+        ) : section.type === 'PROMOTIONAL_SECTION' ? (
           <FadeIn key={section.id} delay={sectionIndex * 0.05}>
             <div aria-label={section.promoTitle || section.name}>
               <PromotionalSection section={section} />

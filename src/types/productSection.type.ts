@@ -37,7 +37,11 @@ export type QuickFilterConfig = {
   tabs: QuickFilterTab[];
 };
 
-export type SectionType = 'PRODUCT_SECTION' | 'PROMOTIONAL_SECTION';
+export type SectionType = 'PRODUCT_SECTION' | 'PROMOTIONAL_SECTION' | 'EVENT_SECTION';
+
+// Khối sự kiện (flash sale). Tên giữa ruy băng = name, tên sự kiện = badge, phần nhấn = promoTitle, câu phụ = subtitle.
+export type EventTheme = 'nha-giao' | 'black-friday' | '11-11' | 'tet';
+export type EventIcon = 'cap' | 'tag' | 'gift' | 'flower' | 'bolt';
 
 export type ProductSection = {
   id: number;
@@ -64,9 +68,30 @@ export type ProductSection = {
   imagePos: 'left' | 'right' | 'background' | 'none';
   colorPreset: 'dark-premium' | 'ember-orange' | 'light-minimal' | 'image-background';
   layout: 'text-left-cta-right' | 'image-left' | 'image-right';
+  // Event fields (khối sự kiện)
+  eventTheme?: EventTheme;
+  eventIcon?: EventIcon;
+  startsAt?: string | null;
+  endsAt?: string | null;
   createdAt: string;
   updatedAt: string;
   products: SectionProduct[];
+};
+
+export type EventSectionInput = {
+  type: 'EVENT_SECTION';
+  name: string;
+  slug: string;
+  badge: string;
+  promoTitle: string;
+  subtitle: string;
+  viewAllUrl: string;
+  eventTheme: EventTheme;
+  eventIcon: EventIcon;
+  startsAt: string; // ISO
+  endsAt: string;   // ISO
+  sortOrder: number;
+  isActive: boolean;
 };
 
 export type ProductSectionInput = {
