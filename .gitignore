@@ -25,3 +25,6 @@ Thumbs.db
 graphify-out/
 
 tsconfig.tsbuildinfo
+
+.claude/
+CLAUDE.md

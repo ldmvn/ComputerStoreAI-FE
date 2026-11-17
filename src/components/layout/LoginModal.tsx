@@ -10,6 +10,18 @@ import type { RecoveryMode } from '@/components/auth/ForgotPasswordForm';
 import { useToast } from '@/components/ui/Toast';
 import { useAuthModal } from '@/store/authModal.store';
 
+// Logo "G" nhiều màu chính thức của Google (theo hướng dẫn thương hiệu Google Sign-In).
+function GoogleLogo() {
+  return (
+    <svg viewBox="0 0 48 48" className="h-5 w-5 shrink-0" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
+
 type AuthMode = 'login' | 'register' | RecoveryMode;
 
 type LoginModalProps = {
@@ -189,7 +201,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
         aria-modal="true"
         aria-labelledby="auth-modal-title"
         onMouseDown={(event) => event.stopPropagation()}
-        className={`relative grid max-h-[calc(100vh-2rem)] w-full max-w-[980px] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-200 md:grid-cols-[0.9fr_1.1fr] ${isVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0'}`}
+        className={`relative grid max-h-[calc(100vh-2rem)] w-full max-w-[980px] overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-track]:my-4 [&::-webkit-scrollbar-track]:bg-transparent rounded-2xl border border-slate-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.18)] transition duration-200 md:grid-cols-[0.9fr_1.1fr] ${isVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0'}`}
       >
         <button type="button" onClick={onClose} className="ui-button absolute right-4 top-4 z-10 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" aria-label="Đóng cửa sổ đăng nhập">
           <X className="h-5 w-5" />
@@ -232,10 +244,10 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
               {message && <p role="alert" className="rounded-lg bg-slate-100 px-3 py-2.5 text-sm text-slate-600">{message}</p>}
               <button type="submit" disabled={isLoggingIn} className="ui-button h-12 w-full rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-sm font-semibold text-white transition hover:from-primary-700 hover:to-primary-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:cursor-not-allowed disabled:opacity-60">{isLoggingIn ? 'Đang đăng nhập...' : 'Đăng nhập'}</button>
               <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />Hoặc đăng nhập với<span className="h-px flex-1 bg-slate-200" /></div>
-              <button type="button" onClick={handleGoogleLogin} disabled={isGoogleRedirecting || isLoggingIn} className="ui-button ui-button--neutral flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"><span className="text-lg font-bold text-[#4285F4]">G</span>Google</button>
+              <button type="button" onClick={handleGoogleLogin} disabled={isGoogleRedirecting || isLoggingIn} className="ui-button ui-button--neutral flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-[#1f1f1f] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"><GoogleLogo />Continue with Google</button>
             </form>
           ) : (
-            <form onSubmit={handleRegisterSubmit} noValidate className="auth-form-enter mx-auto mt-6 max-h-[calc(100vh-12rem)] max-w-md space-y-4 overflow-y-auto pr-1">
+            <form onSubmit={handleRegisterSubmit} noValidate className="auth-form-enter mx-auto mt-6 max-h-[calc(100vh-12rem)] max-w-md space-y-4 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div><label htmlFor="modal-register-name" className="mb-2 block text-sm font-semibold text-slate-700">Họ và tên *</label><div className="relative"><UserRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input id="modal-register-name" value={fullName} onChange={(event) => setFullName(event.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('modal-register-email')?.focus(); } }} placeholder="Nhập họ và tên" autoComplete="name" className="h-[52px] w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" /></div>{registerErrors.fullName && <p className="mt-1 text-sm text-red-600" role="alert">{registerErrors.fullName}</p>}</div>
               <div><label htmlFor="modal-register-email" className="mb-2 block text-sm font-semibold text-slate-700">Email *</label><div className="relative"><Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input id="modal-register-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('modal-register-phone')?.focus(); } }} placeholder="example@gmail.com" autoComplete="email" className="h-[52px] w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" /></div>{registerErrors.email && <p className="mt-1 text-sm text-red-600" role="alert">{registerErrors.email}</p>}</div>
               <div><label htmlFor="modal-register-phone" className="mb-2 block text-sm font-semibold text-slate-700">Số điện thoại *</label><div className="relative"><Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input id="modal-register-phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('modal-register-password')?.focus(); } }} placeholder="Nhập số điện thoại" autoComplete="tel" className="h-[52px] w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20" /></div>{registerErrors.phone && <p className="mt-1 text-sm text-red-600" role="alert">{registerErrors.phone}</p>}</div>
@@ -245,7 +257,7 @@ export default function LoginModal({ isOpen, onClose, initialMode = 'login' }: L
               {message && <p role="alert" className="rounded-lg bg-slate-100 px-3 py-2.5 text-sm text-slate-600">{message}</p>}
               <button type="submit" disabled={isRegistering} className="ui-button h-12 w-full rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-sm font-semibold text-white transition hover:from-primary-700 hover:to-primary-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:cursor-not-allowed disabled:opacity-60">{isRegistering ? 'Đang đăng ký...' : 'Đăng ký'}</button>
               <div className="flex items-center gap-3 text-xs text-slate-400"><span className="h-px flex-1 bg-slate-200" />Hoặc đăng ký với<span className="h-px flex-1 bg-slate-200" /></div>
-              <button type="button" onClick={handleGoogleLogin} disabled={isGoogleRedirecting || isRegistering} className="ui-button ui-button--neutral flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"><span className="text-lg font-bold text-[#4285F4]">G</span>Google</button>
+              <button type="button" onClick={handleGoogleLogin} disabled={isGoogleRedirecting || isRegistering} className="ui-button ui-button--neutral flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-medium text-[#1f1f1f] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"><GoogleLogo />Continue with Google</button>
             </form>
           )}
           {!recoveryMode && <p className="mx-auto mt-7 max-w-md text-center text-sm text-slate-500">{authMode === 'login' ? <>Chưa có tài khoản?{' '}<button type="button" onClick={() => { setAuthMode('register'); setMessage(''); }} className="ui-link font-semibold text-primary-600 hover:text-primary-700">Đăng ký ngay</button></> : <>Đã có tài khoản?{' '}<button type="button" onClick={() => { setAuthMode('login'); setRegisterErrors({}); setMessage(''); }} className="ui-link font-semibold text-primary-600 hover:text-primary-700">Đăng nhập</button></>}</p>}
