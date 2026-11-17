@@ -43,6 +43,15 @@ export type CompatibilityIssue = {
   message: string;
 };
 
+// Một luật tương thích đã được kiểm, kèm giá trị cụ thể đã đối chiếu (ví dụ "Bộ vi xử lý: LGA1700 · Bo mạch chủ: LGA1700").
+export type CompatibilityCheck = {
+  code: string;
+  name: string;
+  status: 'pass' | 'fail' | 'warning' | 'skip';
+  slots: string[];
+  message: string;
+};
+
 export type AiBuildPcTier = {
   name: string;
   description: string;
@@ -53,6 +62,7 @@ export type AiBuildPcTier = {
   fpsEstimates: FpsEstimate[];
   compatibilityStatus: 'pass' | 'warning' | 'fail';
   compatibilityIssues: CompatibilityIssue[];
+  compatibilityChecks?: CompatibilityCheck[];
   compatibilityMissing: { slots: string[]; message: string }[];
   canAddToCart: boolean;
   isComplete: boolean;

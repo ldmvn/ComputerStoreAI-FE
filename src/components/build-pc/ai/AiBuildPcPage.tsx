@@ -8,7 +8,7 @@ import {
   Sparkles, Loader2, AlertCircle, CheckCircle2, AlertTriangle,
   ShoppingCart, Pencil, ChevronDown, ChevronUp, Send, Wrench,
   Cpu, Monitor, Zap, Shield, Package, BarChart3,
-  MessageSquare, Search, GitCompare,
+  MessageSquare, Search, GitCompare, Info,
 } from 'lucide-react';
 import { useAiBuildPc } from '@/hooks/useAiBuildPc';
 import { useCartStore } from '@/store/cart.store';
@@ -289,7 +289,7 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
             <span className="mr-2 text-lg">📞</span>
             Cần hỗ trợ thêm? Liên hệ DUCMANH PC qua{' '}
             <strong className="text-gray-900">Zalo</strong> hoặc gọi{' '}
-            <strong className="text-gray-900">Hotline 0123 456 789</strong> để được tư vấn trực tiếp.
+            <strong className="text-gray-900">Hotline 0386220065</strong> để được tư vấn trực tiếp.
           </p>
         </div>
 
@@ -620,7 +620,8 @@ function TierDetail({ tier, tierIdx, result, onTransfer, onAddToCart, cartStatus
   cartStatus: string;
   cartMsg: string;
 }) {
-  const [showCompat, setShowCompat] = useState(false);
+  // Mở sẵn danh sách luật đã kiểm để khách thấy ngay hệ thống đã đối chiếu những gì; vẫn bấm để thu gọn được.
+  const [showCompat, setShowCompat] = useState(true);
   const diff = tier.totalPrice - result.budget;
 
   const cpuItem = tier.items.find(i => i.slot === 'cpu');
@@ -791,7 +792,10 @@ function CompatSection({ tier, result, showDetail, onToggle }: {
   const parsed = result.parsedRequirements || {};
   const inStockCount = tier.items.filter(i => (i.stockQuantity ?? 0) > 0).length;
   const issueCount = tier.compatibilityIssues?.length ?? 0;
-  const passCount = 14 - issueCount;
+  // Số liệu lấy từ danh sách luật thật mà hệ thống đã kiểm (không còn dùng con số cố định).
+  const checks = tier.compatibilityChecks ?? [];
+  const checkTotal = checks.length;
+  const passCount = checks.filter(c => c.status === 'pass').length;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
@@ -831,7 +835,7 @@ function CompatSection({ tier, result, showDetail, onToggle }: {
         <div className="flex flex-wrap gap-4 text-sm">
           <div className="flex items-baseline gap-2">
             <span className={`text-2xl font-bold tabular-nums ${tier.compatibilityStatus === 'pass' ? 'text-green-600' : 'text-amber-600'}`}>
-              {passCount}/{passCount + issueCount}
+              {passCount}/{checkTotal}
             </span>
             <span className="text-gray-500">luật tương thích đạt</span>
           </div>
@@ -864,8 +868,26 @@ function CompatSection({ tier, result, showDetail, onToggle }: {
           {showDetail ? 'Ẩn chi tiết' : 'Xem từng luật đã kiểm'}
         </button>
 
-        {showDetail && tier.compatibilityIssues?.length === 0 && (
-          <p className="mt-3 text-sm text-gray-500">Tất cả các luật tương thích đều đạt. Cấu hình này an toàn để sử dụng.</p>
+        {showDetail && (
+          checks.length > 0 ? (
+            <ul className="mt-3 divide-y divide-gray-100 rounded-lg border border-gray-200">
+              {checks.map((check, i) => (
+                <li key={`${check.code}-${i}`} className="flex items-start gap-3 px-3 py-2.5 text-sm">
+                  {check.status === 'pass' && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" aria-label="Đạt" />}
+                  {check.status === 'fail' && <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" aria-label="Lỗi" />}
+                  {check.status === 'warning' && <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-label="Cảnh báo" />}
+                  {check.status === 'skip' && <Info className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-label="Thiếu dữ liệu" />}
+                  <p className="min-w-0 text-gray-600">
+                    <span className="font-semibold text-gray-900">{check.name}</span>
+                    <span className="text-gray-400"> · </span>
+                    {check.message}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : issueCount === 0 && (
+            <p className="mt-3 text-sm text-gray-500">Tất cả các luật tương thích đều đạt. Cấu hình này an toàn để sử dụng.</p>
+          )
         )}
       </div>
     </div>
