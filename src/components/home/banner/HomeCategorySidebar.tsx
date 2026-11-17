@@ -150,8 +150,8 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
                 isActive ? 'bg-primary-50 text-primary-600' : 'text-slate-700 hover:bg-primary-50 hover:text-primary-600'
               }`}
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary-600 transition-colors group-hover:bg-primary-100">
-                <Icon className="h-3.5 w-3.5" />
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+                <Icon className="h-[18px] w-[18px]" />
               </span>
               <span className="min-w-0 flex-1 truncate">{cat.name}</span>
               <ChevronRight className={`h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:text-primary-600 ${isActive ? 'rotate-90' : ''}`} />
@@ -163,12 +163,15 @@ export default function HomeCategorySidebar({ className = '' }: { className?: st
       {activeId !== null && (
         // bottom-0 + top-0 = panel stretches to full sidebar height.
         // h-full overflow-y-auto trên inner div cho phép cuộn nếu nội dung nhiều.
+        // Chiều rộng = khoảng cách giữa hai cột (16px) + đúng chiều rộng banner chính (19fr : 57fr nên banner chính
+        // = 3 lần rộng cột danh mục), pl-4 chừa lại khoảng cách đó: panel phủ vừa hết banner chính, không lộ phần nào.
         <div
-          className="absolute bottom-0 left-full top-0 z-30 hidden min-w-[min(820px,calc(100vw-20rem))] max-w-[calc(100vw-2rem)] origin-top-left animate-support-toggle-in pl-3 md:block"
+          className="absolute bottom-0 left-full top-0 z-30 hidden w-[calc(300%+16px)] origin-top-left animate-support-toggle-in pl-4 md:block"
           role="dialog"
           aria-label="Chi tiết danh mục"
         >
-          <div className="h-full overflow-y-auto">
+          {/* Ẩn thanh cuộn nhưng vẫn cuộn được bằng con lăn chuột hoặc vuốt khi nội dung dài. */}
+          <div className="h-full overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {menuLoading && !menus.length && (
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-lg"><p className="text-sm text-slate-500">Đang tải...</p></div>
             )}
