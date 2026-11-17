@@ -24,6 +24,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import BuildPcDropdown from './BuildPcDropdown';
+import { OPEN_MOBILE_MENU_EVENT } from './MobileBottomNav';
 import { getCategoryIcon } from '@/components/category/CategoryIcon';
 import { getPublicCategories, type PublicCategory } from '@/services/category.service';
 import { getPublicMenus, type PublicMenu } from '@/services/megaMenu.service';
@@ -212,6 +213,12 @@ export default function Header() {
     };
   }, [mobileMenuOpen]);
 
+  // Nút "Danh mục" ở thanh điều hướng dưới (điện thoại) mở ngăn kéo danh mục.
+  useEffect(() => {
+    const open = () => { setCategoriesOpen(false); setActiveCategory(null); setMobileMenuOpen(true); };
+    window.addEventListener(OPEN_MOBILE_MENU_EVENT, open);
+    return () => window.removeEventListener(OPEN_MOBILE_MENU_EVENT, open);
+  }, []);
 
 
   const toggleCategories = () => {
@@ -314,7 +321,7 @@ export default function Header() {
             {!heroVisible && (
             <div
               id="desktop-category-menu"
-              className={`absolute left-0 top-full z-50 hidden max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto pt-3 origin-top-left transition-all duration-200 xl:flex ${activeCategory !== null ? 'w-[min(1200px,calc(100vw-2rem))]' : ''} ${
+              className={`absolute left-0 top-full z-50 hidden max-h-[calc(100dvh-100px)] items-stretch overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pt-3 origin-top-left transition-all duration-200 xl:flex ${activeCategory !== null ? 'w-[min(1200px,calc(100vw-2rem))]' : ''} ${
                 categoriesOpen
                   ? 'visible translate-y-0 scale-100 opacity-100'
                   : 'invisible -translate-y-2 scale-95 opacity-0 pointer-events-none'
@@ -355,8 +362,8 @@ export default function Header() {
                           : 'text-slate-700 hover:bg-primary-50 hover:text-primary-600'
                       }`}
                     >
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary-50 text-primary-600 transition-colors group-hover:bg-primary-100">
-                        <Icon className="h-3.5 w-3.5" />
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center">
+                        <Icon className="h-[18px] w-[18px]" />
                       </span>
                       <span className="min-w-0 flex-1 truncate">{cat.name}</span>
                       <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:text-primary-600" />
