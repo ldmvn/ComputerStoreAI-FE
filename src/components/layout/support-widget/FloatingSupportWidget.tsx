@@ -60,7 +60,7 @@ export default function FloatingSupportWidget() {
     <div
       ref={wrapperRef}
       style={chatKeyboardOpen ? { bottom: keyboard.inset + 8 } : undefined}
-      className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-[80] flex lg:bottom-5 flex-col items-end gap-3 sm:right-6"
+      className="fixed bottom-[calc(6.5rem+env(safe-area-inset-bottom))] right-4 z-[80] flex lg:bottom-5 flex-col items-end gap-3 sm:right-6"
     >
       <AnimatePresence>
         {isOpen && (

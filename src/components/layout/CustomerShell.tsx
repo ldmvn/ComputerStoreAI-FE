@@ -11,7 +11,7 @@ export default function CustomerShell({ children, contentClassName = 'flex-1', f
   compactFooter?: boolean;
 }) {
   return (
-    <div className={`flex flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 ${fillViewport ? 'min-h-screen' : ''}`}>
+    <div className={`flex flex-col pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0 ${fillViewport ? 'min-h-screen' : ''}`}>
       <Header />
       <CategoryHeroBackdrop />
       <main className={contentClassName}>{children}</main>
