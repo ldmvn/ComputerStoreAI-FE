@@ -10,7 +10,7 @@ import { mediaUrl } from '@/services/http.client';
 import { formatProductPrice, productDetailHref } from '@/lib/product';
 import type { Product } from '@/types/product.type';
 import type { ProductSection, SectionProduct } from '@/types/productSection.type';
-import { eventIcon, eventTheme } from './eventThemes';
+import { eventBadgeStyle, eventIcon, eventTheme } from './eventThemes';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -65,9 +65,9 @@ function EventCard({ product, accent, soft }: { product: SectionProduct; accent:
   };
 
   const image = (
-    <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-md" style={{ background: soft }}>
+    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-md" style={{ background: soft }}>
       {product.primaryImage
-        ? <img src={mediaUrl(product.primaryImage)} alt={product.name} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-105 motion-reduce:transform-none" />
+        ? <img src={mediaUrl(product.primaryImage)} alt={product.name} loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-200 group-hover:-translate-y-1 group-hover:scale-105 motion-reduce:transform-none" />
         : <PackageOpen className="h-10 w-10 text-slate-300" aria-hidden />}
       {discounted && percent >= 1 && (
         <span className="absolute left-1.5 top-1.5 rounded px-1.5 py-0.5 text-[11px] font-extrabold text-white" style={{ background: accent }}>-{percent}%</span>
@@ -76,7 +76,7 @@ function EventCard({ product, accent, soft }: { product: SectionProduct; accent:
   );
 
   return (
-    <article className="group flex min-w-0 flex-col rounded-lg bg-white p-2 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none motion-reduce:transition-none">
+    <article className="group flex min-w-0 flex-col rounded-lg bg-white p-2 transition-transform duration-200 hover:-translate-y-0.5 motion-reduce:transform-none motion-reduce:transition-none">
       {href ? <Link href={href} aria-label={`Xem chi tiết ${product.name}`}>{image}</Link> : image}
       <h3 className="mt-2 line-clamp-2 h-9 text-[13px] font-semibold leading-[1.35] text-slate-900" title={product.name}>
         {href ? <Link href={href}>{product.name}</Link> : product.name}
@@ -87,7 +87,7 @@ function EventCard({ product, accent, soft }: { product: SectionProduct; accent:
         type="button"
         disabled={soldOut}
         onClick={add}
-        className="mt-2 h-9 w-full rounded-full text-[13px] font-bold text-white shadow-[0_3px_0_rgba(0,0,0,0.22)] transition active:translate-y-px disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none"
+        className="mt-2 h-9 w-full rounded-full text-[13px] font-bold text-white transition active:translate-y-px disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
         style={soldOut ? undefined : { background: accent }}
       >
         {soldOut ? 'Hết hàng' : 'Thêm vào giỏ'}
@@ -98,6 +98,7 @@ function EventCard({ product, accent, soft }: { product: SectionProduct; accent:
 
 export default function EventSection({ section }: { section: ProductSection }) {
   const theme = eventTheme(section.eventTheme);
+  const badgeStyle = eventBadgeStyle(theme);
   const { Icon } = eventIcon(section.eventIcon);
   const countdown = useCountdown(section.endsAt);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -166,7 +167,7 @@ export default function EventSection({ section }: { section: ProductSection }) {
       <div className="pointer-events-none absolute left-1/2 top-[-26px] z-10 h-14 w-[min(480px,92%)] -translate-x-1/2 sm:h-16">
         <span className="absolute left-[-2px] top-0 h-4 w-6 bg-[#7c2d12]" style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 0)' }} aria-hidden />
         <span className="absolute right-[-2px] top-0 h-4 w-6 bg-[#7c2d12]" style={{ clipPath: 'polygon(0 0, 100% 0, 0 100%)' }} aria-hidden />
-        <div className="absolute inset-0 drop-shadow-md" aria-hidden>
+        <div className="absolute inset-0" aria-hidden>
           <div className="h-full w-full" style={{ background: 'linear-gradient(#fde68a 0%, #f6c859 55%, #e9a62f 100%)', clipPath: 'polygon(3% 0, 97% 0, 100% 100%, 0 100%)' }} />
         </div>
         {/* Đồng hồ báo thức (ảnh trong suốt ở public/icons) nổi lên khỏi mép ruy băng và rung lắc theo .event-alarm */}
@@ -176,12 +177,12 @@ export default function EventSection({ section }: { section: ProductSection }) {
           aria-hidden="true"
           width={78}
           height={78}
-          className="event-alarm absolute -top-4 left-[4%] h-[68px] w-[68px] object-contain drop-shadow-md sm:h-[80px] sm:w-[80px]"
+          className="event-alarm absolute -top-4 left-[4%] h-[68px] w-[68px] object-contain sm:h-[80px] sm:w-[80px]"
         />
         <h2
           id={`event-${section.id}`}
           className="absolute inset-0 flex items-center justify-center whitespace-nowrap pl-16 text-lg font-black italic leading-none text-white sm:pl-24 sm:text-[28px]"
-          style={{ textShadow: `0 2px 0 ${theme.ribbonShadow}, 0 0 8px ${theme.ribbonShadow}, 2px 2px 0 ${theme.ribbonShadow}, -2px 2px 0 ${theme.ribbonShadow}` }}
+          style={{ textShadow: `0 1px 1px ${theme.ribbonShadow}` }}
         >
           {section.name}
         </h2>
@@ -189,18 +190,20 @@ export default function EventSection({ section }: { section: ProductSection }) {
 
       {/* Dòng sự kiện + đồng hồ đếm ngược */}
       <div className="mb-3 mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-white sm:mt-9">
-        <span
-          className="inline-flex items-center gap-2 rounded-full py-1 pl-1.5 pr-4 text-sm font-black tracking-wide shadow-md sm:text-[17px]"
-          style={{ background: `linear-gradient(135deg, ${theme.badge.bg[0]}, ${theme.badge.bg[1]})`, border: `2px solid ${theme.badge.border}`, color: theme.badge.text }}
-        >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: theme.badge.iconBg, color: theme.badge.iconFg }}>
-            <Icon className="h-4 w-4" aria-hidden />
+        {section.badge?.trim() && (
+          <span
+            className="inline-flex items-center gap-2 rounded-full py-1 pl-1.5 pr-4 text-sm font-black tracking-wide sm:text-[17px]"
+            style={{ background: badgeStyle.background, border: `2px solid ${badgeStyle.border}`, color: badgeStyle.text }}
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full" style={{ background: badgeStyle.iconBg, color: badgeStyle.iconFg }}>
+              <Icon className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="uppercase">
+              {section.badge}{section.promoTitle && <> <b className="text-[1.15em]" style={{ color: badgeStyle.hi }}>{section.promoTitle}</b></>}
+            </span>
           </span>
-          <span className="uppercase">
-            {section.badge}{section.promoTitle && <> <b className="text-[1.15em]" style={{ color: theme.badge.hi }}>{section.promoTitle}</b></>}
-          </span>
-        </span>
-        {section.subtitle && <span className="text-sm font-bold text-white/95 sm:text-base" style={{ textShadow: '0 1px 0 rgba(0,0,0,.3)' }}>{section.subtitle}</span>}
+        )}
+        {section.subtitle && <span className="text-sm font-bold text-white/95 sm:text-base">{section.subtitle}</span>}
 
         <div className="ml-auto flex flex-wrap items-center gap-1.5 text-sm font-bold" role="timer" aria-label="Thời gian còn lại của sự kiện">
           <span className="mr-1">Kết thúc sau</span>
@@ -240,10 +243,10 @@ export default function EventSection({ section }: { section: ProductSection }) {
         </div>
         {loop && (
           <>
-            <button type="button" onClick={() => scroll(-1)} aria-label="Trước" className="absolute -left-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-800 shadow-lg sm:flex">
+            <button type="button" onClick={() => scroll(-1)} aria-label="Trước" className="absolute -left-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800 sm:flex">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button type="button" onClick={() => scroll(1)} aria-label="Tiếp" className="absolute -right-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white text-slate-800 shadow-lg sm:flex">
+            <button type="button" onClick={() => scroll(1)} aria-label="Tiếp" className="absolute -right-3 top-1/2 z-10 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-800 sm:flex">
               <ChevronRight className="h-5 w-5" />
             </button>
           </>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Modal from '@/components/ui/Modal';
-import { EVENT_ICONS, EVENT_THEMES, eventIcon, eventTheme } from '@/components/home/product-section/eventThemes';
+import { EVENT_ICONS, EVENT_THEMES, eventBadgeStyle, eventIcon, eventTheme } from '@/components/home/product-section/eventThemes';
 import type { EventIcon, EventSectionInput, EventTheme, ProductSection } from '@/types/productSection.type';
 
 function slugify(value: string) {
@@ -47,6 +47,7 @@ export default function EventSectionForm({ section, busy, onClose, onSave }: {
 
   const t = eventTheme(theme);
   const Icon = eventIcon(icon).Icon;
+  const bs = eventBadgeStyle(t);
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -71,10 +72,12 @@ export default function EventSectionForm({ section, busy, onClose, onSave }: {
             <span className="rounded-b-md px-8 py-1.5 text-lg font-black italic text-white" style={{ background: 'linear-gradient(#fde68a, #e9a62f)', textShadow: `0 2px 0 ${t.ribbonShadow}, 0 0 6px ${t.ribbonShadow}` }}>{name || 'TÊN Ở GIỮA'}</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-4 text-sm font-black" style={{ background: `linear-gradient(135deg, ${t.badge.bg[0]}, ${t.badge.bg[1]})`, border: `2px solid ${t.badge.border}`, color: t.badge.text }}>
-              <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: t.badge.iconBg, color: t.badge.iconFg }}><Icon className="h-3.5 w-3.5" aria-hidden /></span>
-              {(badge || 'TÊN SỰ KIỆN').toUpperCase()} {promoTitle && <span style={{ color: t.badge.hi }}>{promoTitle.toUpperCase()}</span>}
-            </span>
+            {badge.trim() && (
+              <span className="inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-4 text-sm font-black" style={{ background: bs.background, border: `2px solid ${bs.border}`, color: bs.text }}>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: bs.iconBg, color: bs.iconFg }}><Icon className="h-3.5 w-3.5" aria-hidden /></span>
+                {badge.toUpperCase()} {promoTitle && <span style={{ color: bs.hi }}>{promoTitle.toUpperCase()}</span>}
+              </span>
+            )}
             {subtitle && <span className="text-sm font-bold text-white">{subtitle}</span>}
           </div>
         </div>
@@ -82,8 +85,8 @@ export default function EventSectionForm({ section, busy, onClose, onSave }: {
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm font-medium text-slate-700">Tên ở giữa (trên ruy băng)
             <input required value={name} onChange={e => setName(e.target.value)} maxLength={150} className={inputCls} placeholder="FLASH SALE GIÁ SỐC" /></label>
-          <label className="block text-sm font-medium text-slate-700">Tên sự kiện
-            <input required value={badge} onChange={e => setBadge(e.target.value)} maxLength={100} className={inputCls} placeholder="Nhân ngày Nhà giáo Việt Nam" /></label>
+          <label className="block text-sm font-medium text-slate-700">Tên sự kiện (để trống thì không hiện khung này)
+            <input value={badge} onChange={e => setBadge(e.target.value)} maxLength={100} className={inputCls} placeholder="Nhân ngày Nhà giáo Việt Nam" /></label>
           <label className="block text-sm font-medium text-slate-700">Phần nhấn (màu vàng, không bắt buộc)
             <input value={promoTitle} onChange={e => setPromoTitle(e.target.value)} maxLength={40} className={inputCls} placeholder="20/11" /></label>
           <label className="block text-sm font-medium text-slate-700">Câu phụ (không bắt buộc)

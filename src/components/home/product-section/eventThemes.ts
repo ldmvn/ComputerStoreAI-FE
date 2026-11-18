@@ -46,3 +46,11 @@ export const EVENT_ICONS: Record<EventIcon, { label: string; Icon: LucideIcon }>
 
 export const eventTheme = (id?: string): EventThemeConfig => EVENT_THEMES[(id as EventTheme) in EVENT_THEMES ? (id as EventTheme) : 'nha-giao'];
 export const eventIcon = (id?: string) => EVENT_ICONS[(id as EventIcon) in EVENT_ICONS ? (id as EventIcon) : 'cap'];
+
+export type EventBadgeStyle = { background: string; border: string; text: string; hi: string; iconBg: string; iconFg: string };
+
+// Khung tên sự kiện: nền trắng cho mọi chủ đề, chữ tối và phần nhấn màu cam; biểu tượng và viền theo chủ đề.
+export function eventBadgeStyle(theme: EventThemeConfig): EventBadgeStyle {
+  const base = theme.badge;
+  return { background: '#ffffff', border: base.border, text: '#111827', hi: '#C4480A', iconBg: base.iconBg, iconFg: base.iconFg };
+}
