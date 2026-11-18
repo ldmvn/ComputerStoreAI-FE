@@ -13,6 +13,7 @@ import type { ProductListResponse } from '@/types/product.type';
 import { formatProductPrice } from '@/lib/product';
 import { useToast } from '@/components/ui/Toast';
 import EmptyState from '@/components/ui/EmptyState';
+import PageNumbers from '@/components/ui/PageNumbers';
 import CatalogProductCard from './CatalogProductCard';
 import FilterSidebar, { type FilterState } from './FilterSidebar';
 
@@ -36,7 +37,7 @@ type Chip = { id: string; label: string; value: string; clear: Record<string, st
 
 function SkeletonGrid() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" aria-busy="true" aria-label="Đang tải sản phẩm">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 2xl:grid-cols-5" aria-busy="true" aria-label="Đang tải sản phẩm">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="animate-pulse rounded-2xl border border-slate-200 bg-white">
           <div className="aspect-square w-full rounded-t-2xl bg-slate-100" />
@@ -297,32 +298,17 @@ export default function ProductCatalog() {
                   ) : undefined}
                 />
               ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 2xl:grid-cols-5">
                   {result.products.map(product => <CatalogProductCard key={product.id} product={product} />)}
                 </div>
               )}
 
-              {result.meta.totalPages > 1 && (
-                <nav aria-label="Phân trang sản phẩm" className="mt-6 flex items-center justify-center gap-4">
-                  <button
-                    type="button"
-                    className="rounded-lg border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
-                    disabled={result.meta.page <= 1}
-                    onClick={() => navigate({ page: String(result.meta.page - 1) })}
-                  >
-                    Trang trước
-                  </button>
-                  <span className="text-sm tabular-nums text-slate-500">{result.meta.page} / {result.meta.totalPages}</span>
-                  <button
-                    type="button"
-                    className="rounded-lg border border-slate-200 px-4 py-2 text-sm disabled:opacity-40"
-                    disabled={result.meta.page >= result.meta.totalPages}
-                    onClick={() => navigate({ page: String(result.meta.page + 1) })}
-                  >
-                    Trang sau
-                  </button>
-                </nav>
-              )}
+              <PageNumbers
+                page={result.meta.page}
+                totalPages={result.meta.totalPages}
+                label="Phân trang sản phẩm"
+                onChange={p => navigate({ page: String(p) })}
+              />
             </>
           )}
         </div>
