@@ -3,6 +3,7 @@ import MotionProvider from '@/components/ui/motion/MotionProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 import MaintenanceOverlay from '@/components/layout/MaintenanceOverlay';
+import ScrollRestorer from '@/components/layout/ScrollRestorer';
 import { SERVER_API_BASE_URL } from '@/services/http.client';
 import { SITE_URL } from '@/lib/site';
 import './globals.css';
@@ -115,6 +116,7 @@ export default function RootLayout({
             <ConfirmProvider>
               {children}
               <MaintenanceOverlay />
+              <ScrollRestorer />
             </ConfirmProvider>
           </ToastProvider>
         </MotionProvider>

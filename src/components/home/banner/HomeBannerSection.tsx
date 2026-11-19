@@ -10,9 +10,12 @@ import BannerSkeleton from './BannerSkeleton';
 import HomeCategorySidebar from './HomeCategorySidebar';
 import styles from './HomeBannerSection.module.css';
 
+// Giữ banner đã tải để quay lại trang chủ dựng lại ngay, không nháy khung trống.
+let cachedBanners: HomeBanners | null = null;
+
 export default function HomeBannerSection() {
-  const [data, setData] = useState<HomeBanners | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<HomeBanners | null>(cachedBanners);
+  const [loading, setLoading] = useState(cachedBanners === null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
 
@@ -20,7 +23,9 @@ export default function HomeBannerSection() {
     const controller = new AbortController();
     const load = async () => {
       try {
-        setData(await getHomeBanners(controller.signal));
+        const fresh = await getHomeBanners(controller.signal);
+        cachedBanners = fresh;
+        if (!controller.signal.aborted) setData(fresh);
         setError(false);
       } catch {
         if (!controller.signal.aborted) setError(true);

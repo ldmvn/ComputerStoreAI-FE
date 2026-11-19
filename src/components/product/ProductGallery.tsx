@@ -31,7 +31,10 @@ export default function ProductGallery({ name, images, primaryImage }: {
   const url = selected?.imageUrl ?? primaryImage;
 
   // Scroll active thumbnail into view when navigating with arrows
+  const mountedRef = useRef(false);
   useEffect(() => {
+    // Lần dựng đầu không cuộn: tránh kéo cả trang xuống chỗ dải ảnh nhỏ khi vừa mở trang.
+    if (!mountedRef.current) { mountedRef.current = true; return; }
     const list = thumbListRef.current;
     if (!list) return;
     const item = list.children[activeIndex] as HTMLElement | undefined;

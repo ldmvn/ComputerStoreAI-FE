@@ -115,16 +115,20 @@ function ProductCarousel({ section }: { section: ProductSection }) {
   );
 }
 
+// Giữ lại danh sách khối đã tải: khi quay lại trang chủ, trang dựng lại ngay đủ chiều cao (rồi cập nhật ngầm)
+// nên vị trí cuộn cũ được khôi phục mượt, không bị nhảy xuống chân trang.
+let cachedSections: ProductSection[] | null = null;
+
 export default function HomeProductSections() {
-  const [sections, setSections] = useState<ProductSection[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [sections, setSections] = useState<ProductSection[]>(cachedSections ?? []);
+  const [loaded, setLoaded] = useState(cachedSections !== null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
     getHomeProductSections(controller.signal)
-      .then(result => { if (!controller.signal.aborted) { setSections(result.sections); setError(false); } })
+      .then(result => { if (!controller.signal.aborted) { cachedSections = result.sections; setSections(result.sections); setError(false); } })
       .catch(() => { if (!controller.signal.aborted) setError(true); })
       .finally(() => { if (!controller.signal.aborted) setLoaded(true); });
     return () => controller.abort();

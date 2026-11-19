@@ -54,6 +54,10 @@ function SkeletonGrid() {
   );
 }
 
+// Kết quả danh sách theo từng địa chỉ: quay lại trang lọc thì dựng lại ngay đủ chiều cao để khôi phục vị trí cuộn mượt.
+type CatalogResult = Pick<ProductListResponse, 'products' | 'meta' | 'filters'>;
+const catalogCache = new Map<string, CatalogResult>();
+
 export default function ProductCatalog() {
   const search = useSearchParams();
   const router = useRouter();
@@ -83,10 +87,10 @@ export default function ProductCatalog() {
     return { attrSelections: out, legacyAttrSlug: slug && value ? slug : null };
   }, [key]);
 
-  const [result, setResult] = useState<Pick<ProductListResponse, 'products' | 'meta' | 'filters'> | null>(null);
+  const [result, setResult] = useState<CatalogResult | null>(() => catalogCache.get(key) ?? null);
   const [metadata, setMetadata] = useState<ProductFilterMetadata>(EMPTY_METADATA);
   const [allCategories, setAllCategories] = useState<PublicCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !catalogCache.has(key));
   const [error, setError] = useState('');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const toast = useToast();
@@ -106,9 +110,12 @@ export default function ProductCatalog() {
       const match = ATTR_PARAM.exec(param);
       if (match && value) query.attr![match[1]] = value;
     }
-    setLoading(true); setError('');
+    // Có kết quả đã lưu của địa chỉ này thì hiện luôn (không nháy trống) và cập nhật ngầm.
+    const cached = catalogCache.get(key);
+    if (cached) setResult(cached);
+    setLoading(!cached); setError('');
     getPublicProducts(query, controller.signal)
-      .then(data => { if (!controller.signal.aborted) setResult(data); })
+      .then(data => { if (!controller.signal.aborted) { catalogCache.set(key, data); setResult(data); } })
       .catch(e => { if (!controller.signal.aborted) { setError(e.message); setResult(null); toast.error('Không tải được danh sách sản phẩm', e.message); } })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
