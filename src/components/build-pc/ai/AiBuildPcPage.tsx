@@ -1,12 +1,13 @@
 'use client';
 
-import { useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
-  Sparkles, Loader2, AlertCircle, CheckCircle2, AlertTriangle,
-  ShoppingCart, Pencil, ChevronDown, ChevronUp, Send, Wrench,
+  Sparkles, Loader2, ArrowRight, AlertCircle, CheckCircle2, AlertTriangle,
+  Gamepad2, GraduationCap, Briefcase, Palette, Radio, Brain, Phone, X, type LucideIcon,
+  ShoppingCart, Pencil, ChevronDown, ChevronUp, Send,
   Cpu, Monitor, Zap, Shield, Package, BarChart3,
   MessageSquare, Search, GitCompare, Info,
 } from 'lucide-react';
@@ -14,13 +15,16 @@ import { useAiBuildPc } from '@/hooks/useAiBuildPc';
 import { useCartStore } from '@/store/cart.store';
 import { useAuthStore } from '@/store/auth.store';
 import { validateBuildPc } from '@/services/buildPc.service';
+import { getPublicStoreInfo } from '@/services/adminSettings.service';
+import { resolveWidgetConfig } from '@/lib/supportWidget';
+import { ZaloGlyph } from '@/components/layout/support-widget/brandIcons';
 import { formatProductPrice } from '@/lib/product';
 import type {
   AiBuildPcRequest, AiBuildPcResult, AiBuildPcTier, AiBuildPcItem,
   FpsEstimate, ParsedRequirements,
 } from '@/types/aiBuildPc.type';
 import {
-  QUICK_SUGGESTIONS, PURPOSE_SHORTCUTS, PURPOSE_PROMPTS,
+  QUICK_SUGGESTIONS, QUICK_NEED_KEYS, PURPOSE_SHORTCUTS, PURPOSE_PROMPTS,
   SLOT_LABELS, REFINEMENT_PRESETS,
 } from '@/types/aiBuildPc.type';
 import {
@@ -29,6 +33,18 @@ import {
 } from '@/lib/aiBuildPcIntent';
 import type { Product } from '@/types/product.type';
 import type { PickedItem, BuildPcProduct } from '@/types/buildPc.type';
+
+// Biểu tượng nét viền (outline) cho mọi nhu cầu: nút nhanh ở trang chủ và bảng "Thêm một chút thông tin".
+const PURPOSE_ICONS: Record<PurposeKey, LucideIcon> = {
+  gaming: Gamepad2,
+  livestream: Radio,
+  'dung-video': Palette,
+  'ai-ml': Brain,
+  'van-phong': Briefcase,
+  'hoc-tap': GraduationCap,
+  'may-tram': Monitor,
+  'chung-khoan': BarChart3,
+};
 
 function toCartProduct(item: AiBuildPcItem): Product {
   return {
@@ -128,6 +144,7 @@ export default function AiBuildPcPage() {
     return (
       <ResultView
         loading={state === 'loading'}
+        onCancelLoading={cancel}
         result={result}
         lastPrompt={lastPrompt}
         onEdit={reset}
@@ -149,6 +166,103 @@ export default function AiBuildPcPage() {
       isLoading={state === 'loading'}
       onCancel={cancel}
     />
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TIẾN TRÌNH KHI CHỜ
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Máy chủ trả kết quả một lần khi xong nên không có tiến độ thật; câu thông báo đổi theo thời gian chờ (ước tính,
+// một lượt thường mất 20-60 giây), mốc "at" là giây bắt đầu của từng câu.
+const PROGRESS_MESSAGES: Array<{ text: string; at: number }> = [
+  { text: 'AI đang đọc yêu cầu: nhu cầu, game, độ phân giải, FPS, ngân sách, hãng và sở thích…', at: 0 },
+  { text: 'AI đang tìm linh kiện còn hàng trong kho…', at: 5 },
+  { text: 'AI đang chọn và cân đối 3 cấu hình theo ngân sách…', at: 12 },
+  { text: 'AI đang kiểm tra tương thích giữa các linh kiện…', at: 30 },
+  { text: 'AI đang hoàn thiện kết quả…', at: 45 },
+];
+
+function BuildProgress({ onCancel, rebuilding = false }: { onCancel?: () => void; rebuilding?: boolean }) {
+  const [seconds, setSeconds] = useState(0);
+  const boxRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const timer = window.setInterval(() => setSeconds(s => s + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+  // Vừa bắt đầu dựng thì đưa khung tiến trình vào giữa màn hình, kể cả khi khách bấm "Tiếp tục" ở bảng hỏi thêm phía dưới.
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    boxRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+  }, []);
+
+  let message = PROGRESS_MESSAGES[0].text;
+  PROGRESS_MESSAGES.forEach(item => { if (seconds >= item.at) message = item.text; });
+  if (rebuilding) message = message.replace('AI đang đọc yêu cầu', 'AI đang đọc lại yêu cầu');
+
+  return (
+    <section ref={boxRef} role="status" aria-live="polite" className="mt-6 scroll-mt-24 rounded-2xl bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] ring-1 ring-slate-200">
+      <div className="relative flex items-center justify-between gap-3 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-3.5">
+        <p className="min-w-0 text-sm text-slate-800 sm:text-[15px]">{message}</p>
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="hidden text-xs tabular-nums text-slate-400 sm:inline">{seconds} giây</span>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+            >
+              Hủy
+            </button>
+          )}
+        </div>
+        {/* Vệt sáng chạy ngang ở mép dưới */}
+        <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden">
+          <span className="build-progress-sweep block h-full w-1/3 bg-gradient-to-r from-transparent via-[#C4480A] to-transparent" />
+        </span>
+      </div>
+      {seconds >= 60 && (
+        <p className="mt-2 px-1 text-xs text-slate-500">Lượt này lâu hơn bình thường, bạn vui lòng đợi thêm chút.</p>
+      )}
+    </section>
+  );
+}
+
+
+// Dải hỗ trợ cuối trang: nút Zalo lấy liên kết từ cấu hình widget hỗ trợ trong trang quản trị
+// (cùng nguồn với nút Zalo ở góc phải dưới), nên đổi liên kết ở quản trị là nút này đổi theo.
+function SupportStrip() {
+  const [zaloHref, setZaloHref] = useState<string | null>(null);
+  useEffect(() => {
+    const ctrl = new AbortController();
+    getPublicStoreInfo(ctrl.signal)
+      .then(res => {
+        const zalo = resolveWidgetConfig(res.data ?? {}).channels.zalo;
+        setZaloHref(zalo.enabled && zalo.href ? zalo.href : null);
+      })
+      .catch(() => { /* không lấy được cấu hình thì ẩn nút, dòng chữ hỗ trợ vẫn hiện */ });
+    return () => ctrl.abort();
+  }, []);
+
+  return (
+    <div className="mt-7 flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-center text-sm text-slate-600 sm:flex-row sm:gap-6 sm:text-left">
+      <p>
+        <Phone className="mr-2 inline h-4 w-4 align-[-3px] text-slate-500" strokeWidth={1.75} aria-hidden="true" />
+        Cần hỗ trợ thêm? Liên hệ DUCMANH PC qua <strong className="text-slate-900">Zalo</strong> hoặc gọi{' '}
+        <strong className="text-slate-900">Hotline 0386220065</strong> để được tư vấn trực tiếp.
+      </p>
+      {zaloHref && (
+        <a
+          href={zaloHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-2.5 pr-4 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-[#0068FF] hover:text-[#0068FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0068FF]"
+        >
+          <ZaloGlyph className="h-7 w-7" />
+          Chat Zalo
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -175,6 +289,7 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
   // Khi câu của khách thiếu nhu cầu hoặc ngân sách: hiện bước hỏi thêm thay vì tự dựng bằng giá trị mặc định.
   const [ask, setAsk] = useState<AskState | null>(null);
   const askRef = useRef<HTMLDivElement>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
 
   // Gộp phần khách vừa chọn bằng nút vào câu gốc để AI dựng đúng ý.
   function finish(state: AskState) {
@@ -188,7 +303,7 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
       if (state.resolution) parts.push(`Màn hình ${state.resolution}`);
       if (state.fps) parts.push(`Mong muốn ${state.fps}`);
     }
-    if (state.budgetTouched && state.budget) parts.push(`Ngân sách tối đa ${formatBudgetLabel(state.budget)}`);
+    if (state.budgetTouched && state.budget) parts.push(`Ngân sách khoảng ${formatBudgetLabel(state.budget)}`);
     setAsk(null);
     onSubmit(parts.join('. '), state.budget ?? undefined);
   }
@@ -197,7 +312,10 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
     const value = text.trim();
     if (!value) return;
     const intent = detectIntent(value);
-    if (intent.purposes.length > 0 && intent.budget) {
+    // Câu mô tả đã dài (từ 8 từ) và có ngân sách thì cứ gửi: AI tự đọc nhu cầu trong câu, không bắt khách chọn lại ở bảng bên dưới
+    // chỉ vì từ khóa chưa nhận ra được.
+    const isDescriptive = value.split(/\s+/).length >= 8;
+    if (intent.budget && (intent.purposes.length > 0 || isDescriptive)) {
       setAsk(null);
       onSubmit(value);
       return;
@@ -206,6 +324,11 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
       text: value, purposes: intent.purposes, budget: intent.budget, purposesTouched: false, budgetTouched: false, fromChips: false,
       games: detectGames(value), resolution: detectResolution(value), fps: detectFps(value),
     });
+    // Bảng hỏi thêm nằm dưới màn hình: tự cuộn xuống để khách thấy ngay (đợi khung hiện ra rồi mới cuộn).
+    window.setTimeout(() => {
+      const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      askRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    }, 60);
   }
 
   function update(patch: Partial<AskState>) {
@@ -217,9 +340,11 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
     submitText(prompt);
   }
 
+  // Bấm gợi ý nhanh: chỉ điền vào ô nhập để khách xem và sửa trước khi gửi (không tự gọi AI).
   function handleQuickSuggestion(text: string) {
     setPrompt(text);
-    submitText(text);
+    setAsk(null);
+    taRef.current?.focus();
   }
 
   // Bấm nút nhu cầu nhanh: mở ngay khung bên dưới với nhu cầu đó đã chọn để khách chọn thêm (bấm lại để bỏ).
@@ -231,114 +356,141 @@ function InputView({ onSubmit, errorMsg, lastPrompt, isLoading, onCancel }: {
       games: detectGames(prompt), resolution: detectResolution(prompt), fps: detectFps(prompt),
     };
     const purposes = base.purposes.includes(key) ? base.purposes.filter(k => k !== key) : [...base.purposes, key];
+    // Bấm bỏ nhu cầu cuối cùng khi khách chỉ mới dùng nút nhanh (chưa gõ câu, chưa chọn ngân sách): đóng bảng hỏi thêm.
+    if (purposes.length === 0 && base.fromChips && !base.budgetTouched) {
+      setAsk(null);
+      return;
+    }
     setAsk({ ...base, purposes, purposesTouched: true });
     window.setTimeout(() => askRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 60);
   }
 
   return (
-    <div className="min-h-[80vh] bg-white bg-[radial-gradient(900px_340px_at_50%_-40px,#ffe3d0_0%,rgba(255,255,255,0)_70%)] text-gray-900">
+    <div className="min-h-[80vh] bg-white text-gray-900">
       <div className="mx-auto max-w-[1120px] px-4 pb-16 pt-10 sm:pt-14">
-        <div className="mx-auto max-w-[880px]">
-          <p className="text-center text-xs font-extrabold uppercase tracking-[0.14em] text-[#C4480A]">DUCMANH PC BUILDER</p>
-          <h1 className="mt-3 text-center text-[28px] font-extrabold leading-tight text-slate-900 sm:text-[40px]">
-            AI dựng cấu hình PC theo<br className="hidden sm:block" /> nhu cầu và ngân sách của bạn
+        {/* Đầu trang: nhãn và tiêu đề căn giữa */}
+        <div className="text-center">
+          <h1 className="mx-auto max-w-[820px] text-[30px] font-extrabold leading-[1.14] tracking-tight text-slate-900 sm:text-[46px]">
+            Xây dựng cấu hình PC với <span className="text-[#C4480A]">AI</span>
           </h1>
-          <p className="mx-auto mt-3 max-w-[640px] text-center text-base leading-relaxed text-slate-500">
-            Mô tả bạn muốn dùng máy làm gì và mức tiền dự kiến, AI sẽ đề xuất cấu hình tối ưu từ linh kiện đang bán tại DUCMANH PC.
-          </p>
-          <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-sm text-slate-600">
-            {['Tư vấn tức thì', 'Kiểm tra tương thích', 'Linh kiện chính hãng'].map(text => (
-              <li key={text} className="flex items-center gap-2">
-                <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-green-100 text-green-700"><CheckCircle2 className="h-3 w-3" aria-hidden="true" /></span>
-                {text}
-              </li>
-            ))}
-          </ul>
+        </div>
 
-          {/* Ô nhập */}
-          <form onSubmit={handleSubmit} className="mt-7 rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-[18px]">
-            <div className="rounded-2xl bg-slate-50 px-4 pb-3 pt-4 sm:px-[18px]">
-              <textarea
-                value={prompt}
-                onChange={e => { setPrompt(e.target.value); if (ask) setAsk(null); }}
-                placeholder="VD: máy chơi Valorant và Liên Minh, màn 2K, tầm 25 triệu"
-                rows={2}
-                maxLength={500}
-                aria-label="Mô tả nhu cầu và ngân sách"
-                className="block min-h-[52px] w-full resize-none bg-transparent text-base text-slate-900 placeholder-slate-400 outline-none sm:text-lg"
-              />
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <span className="flex items-center gap-1.5 text-[13px] text-slate-500"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" />{prompt.length}/500</span>
-                <button
-                  type="submit"
-                  disabled={!prompt.trim() || isLoading}
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#C4480A] px-5 py-3 text-[15px] font-bold text-white transition hover:bg-[#a83b08] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {isLoading ? (<>Đang tạo <Loader2 className="h-4 w-4 animate-spin" /></>) : (<>Nhờ AI dựng <Send className="h-4 w-4" /></>)}
-                </button>
+        <div className="mt-9 grid items-stretch gap-6 lg:grid-cols-[minmax(0,6.3fr)_minmax(0,5.7fr)]">
+          {/* Cột trái: ô nhập */}
+          <div className="flex min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_14px_32px_-16px_rgba(15,23,42,0.14)] sm:p-6">
+            <p className="mb-3 text-sm font-bold text-slate-900">Mô tả nhu cầu của bạn</p>
+            <form onSubmit={handleSubmit} className="flex flex-1 flex-col">
+              <div className="flex flex-1 flex-col rounded-2xl border border-slate-200 bg-slate-50 px-[18px] pb-3.5 pt-4 transition focus-within:border-slate-400">
+                <textarea
+                  ref={taRef}
+                  value={prompt}
+                  onChange={e => { setPrompt(e.target.value); if (ask) setAsk(null); }}
+                  placeholder="VD: máy chơi Valorant và Liên Minh, màn 2K, tầm 25 triệu"
+                  maxLength={500}
+                  aria-label="Mô tả nhu cầu và ngân sách"
+                  className="block min-h-[150px] w-full flex-1 resize-none bg-transparent text-base leading-relaxed text-slate-900 placeholder-slate-400 outline-none sm:text-[19px]"
+                />
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-[13px] text-slate-400"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" />{prompt.length}/500</span>
+                  <button
+                    type="submit"
+                    disabled={!prompt.trim() || isLoading}
+                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#C4480A] px-6 py-3 text-[15px] font-semibold text-white shadow-[0_10px_20px_-8px_rgba(196,72,10,0.6)] transition hover:bg-[#a83b08] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+                  >
+                    {isLoading ? (<>Đang tạo <Loader2 className="h-4 w-4 animate-spin" /></>) : (<>Nhờ AI dựng <Send className="h-4 w-4" /></>)}
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
 
-          {errorMsg && (
-            <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
+            {errorMsg && (
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600" role="alert">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
 
-          {/* Chọn nhanh nhu cầu */}
-          <p className="mb-3 mt-5 text-center text-xs font-extrabold uppercase tracking-widest text-slate-500">Hoặc chọn nhanh nhu cầu</p>
-          <div className="flex flex-wrap justify-center gap-2.5">
-            {PURPOSE_SHORTCUTS.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handlePurposeClick(opt.value)}
-                aria-pressed={!!ask?.purposes.includes(opt.value as PurposeKey)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${ask?.purposes.includes(opt.value as PurposeKey) ? 'border-[#C4480A] bg-orange-50 font-semibold text-[#C4480A]' : 'border-slate-200 bg-white text-slate-700 hover:border-[#C4480A] hover:text-[#C4480A]'}`}
-              >
-                <span aria-hidden="true">{opt.icon}</span>
-                {opt.label}
-              </button>
-            ))}
-            <Link
-              href="/customer/build-pc/manual"
-              className="flex items-center gap-2 rounded-full border border-dashed border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 transition hover:border-[#C4480A] hover:text-[#C4480A]"
-            >
-              <Wrench className="h-4 w-4" aria-hidden="true" />
-              Tự chọn linh kiện
-            </Link>
+            {/* AI làm việc thế nào: 3 ô nhỏ */}
+            <ol aria-label="AI làm việc thế nào" className="mt-5 grid gap-3 sm:grid-cols-3">
+              {[
+                { n: 1, title: 'Chia sẻ nhu cầu', text: 'Mô tả mục đích dùng máy và mức tiền dự kiến.' },
+                { n: 2, title: 'AI chọn linh kiện', text: 'Chọn từ hàng đang bán, hợp nhu cầu, giá và tương thích.' },
+                { n: 3, title: 'So sánh, chọn bản', text: 'Xem 3 bản Tiết kiệm, Tối ưu, Hiệu năng cao.' },
+              ].map(step => (
+                <li key={step.n} className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-3">
+                  <p className="flex items-center gap-1.5 whitespace-nowrap text-[12.5px] font-bold text-slate-900 xl:text-[13.5px]">
+                    <span className="text-xs font-extrabold text-[#C4480A]">{step.n}</span>
+                    {step.title}
+                  </p>
+                  <p className="mt-1.5 text-[12.5px] leading-snug text-slate-500">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          {/* Cột phải: chọn nhanh nhu cầu (một hàng) và gợi ý mô tả nhanh */}
+          <div className="min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_14px_32px_-16px_rgba(15,23,42,0.14)] sm:p-6">
+            <p className="mb-3 text-sm font-bold text-slate-900">Chọn nhanh nhu cầu</p>
+            <div className="flex flex-wrap gap-2 lg:flex-nowrap">
+              {QUICK_NEED_KEYS.map(key => {
+                const opt = PURPOSE_SHORTCUTS.find(p => p.value === key);
+                if (!opt) return null;
+                const Icon = PURPOSE_ICONS[key];
+                const on = !!ask?.purposes.includes(key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handlePurposeClick(key)}
+                    aria-pressed={on}
+                    className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-3.5 py-2 text-sm transition ${on ? 'border-[#C4480A] bg-orange-50 font-semibold text-[#C4480A]' : 'border-slate-200 bg-white text-slate-700 hover:border-[#C4480A] hover:text-[#C4480A]'}`}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="my-5 h-px bg-slate-200" />
+
+            <section aria-labelledby="ai-quick-suggestions">
+              <div className="flex items-center justify-between gap-3">
+                <h2 id="ai-quick-suggestions" className="text-sm font-bold text-slate-900">Gợi ý mô tả nhanh</h2>
+                <Link
+                  href="/customer/build-pc/manual"
+                  className="flex items-center gap-1 text-sm font-medium text-slate-600 transition hover:text-[#C4480A]"
+                >
+                  Tự chọn thủ công
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+              <ul className="mt-3 space-y-2">
+                {QUICK_SUGGESTIONS.map(text => (
+                  <li key={text}>
+                    <button
+                      type="button"
+                      onClick={() => handleQuickSuggestion(text)}
+                      className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-[#C4480A] hover:bg-orange-50/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C4480A]"
+                    >
+                      <span className="min-w-0 flex-1 text-sm text-slate-800">{text}</span>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:text-[#C4480A]" aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
         </div>
+
+        {/* Khung "AI đang dựng" nằm dưới hai thẻ, trải rộng cả bề ngang */}
+        {isLoading && <BuildProgress onCancel={onCancel} />}
 
         {ask && !isLoading && (
-          <div ref={askRef}><AskMore state={ask} onChange={update} onContinue={() => finish(ask)} /></div>
+          <div ref={askRef} className="scroll-mt-24"><AskMore state={ask} onChange={update} onContinue={() => finish(ask)} /></div>
         )}
 
-        {/* AI làm việc thế nào */}
-        <section className="mt-12" aria-labelledby="ai-how-it-works">
-          <h2 id="ai-how-it-works" className="text-xl font-extrabold text-slate-900">AI làm việc thế nào</h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {[
-              { n: 1, title: 'Chia sẻ nhu cầu và ngân sách', text: 'Mô tả mục đích dùng máy và mức tiền dự kiến. AI hỏi thêm nếu còn thiếu.' },
-              { n: 2, title: 'AI chọn linh kiện', text: 'Chọn từ sản phẩm đang bán tại DUCMANH PC, theo nhu cầu, giá và khả năng tương thích.' },
-              { n: 3, title: 'So sánh và chọn cấu hình', text: 'Xem các phương án Tiết kiệm, Tối ưu, Hiệu năng cao rồi thêm vào giỏ hoặc tinh chỉnh.' },
-            ].map(step => (
-              <div key={step.n} className="rounded-2xl border border-slate-200 bg-white p-[18px]">
-                <span className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-[#C4480A] text-sm font-bold text-white">{step.n}</span>
-                <p className="mt-2.5 text-base font-bold text-slate-900">{step.title}</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <div className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
-          <span className="mr-2" aria-hidden="true">📞</span>
-          Cần hỗ trợ thêm? Liên hệ DUCMANH PC qua <strong className="text-slate-900">Zalo</strong> hoặc gọi{' '}
-          <strong className="text-slate-900">Hotline 0386220065</strong> để được tư vấn trực tiếp.
-        </div>
+        <SupportStrip />
       </div>
     </div>
   );
@@ -387,7 +539,7 @@ function AskMore({ state, onChange, onContinue }: {
   const choiceOff = `${choiceBase} border-slate-200 bg-white text-slate-700 hover:border-[#C4480A] hover:text-[#C4480A]`;
   const choiceOn = `${choiceBase} border-[#C4480A] bg-orange-50 font-semibold text-[#C4480A]`;
   const understoodCls = 'inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700';
-  const needTag = <span className="ml-1.5 text-xs font-extrabold uppercase text-[#C4480A]">Cần</span>;
+  const needTag = <span className="ml-1.5 text-xs font-semibold text-[#C4480A]">Cần</span>;
 
   const chipsMode = state.fromChips;
 
@@ -395,7 +547,7 @@ function AskMore({ state, onChange, onContinue }: {
     <div className={`mx-auto mt-9 grid max-w-[1120px] gap-5 rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm sm:p-[22px] ${chipsMode ? '' : 'lg:grid-cols-[360px_1fr]'}`} role="region" aria-label="Thêm thông tin để AI tư vấn chính xác hơn">
       {!chipsMode && (
       <div className="rounded-2xl border border-slate-200 p-5">
-        <p className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.1em] text-[#C4480A]"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> AI đã hiểu nhu cầu của bạn</p>
+        <p className="flex items-center gap-2 text-sm font-semibold text-[#C4480A]"><Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> AI đã hiểu nhu cầu của bạn</p>
         {nothing ? (
           <p className="mt-3 text-sm leading-relaxed text-slate-500">Chưa đọc được thông tin cụ thể nào từ câu này. Bạn chọn giúp mình ở bên cạnh nhé.</p>
         ) : (
@@ -403,12 +555,12 @@ function AskMore({ state, onChange, onContinue }: {
             <div className="mt-3 flex flex-wrap gap-2">
               {state.purposes.map(key => (
                 <button key={key} type="button" onClick={() => togglePurpose(key)} className={understoodCls} title="Bấm để bỏ">
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> {PURPOSE_SHORTCUTS.find(p => p.value === key)?.label} <span aria-hidden="true" className="text-green-700/60">✕</span><span className="sr-only">Bỏ nhu cầu này</span>
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> {PURPOSE_SHORTCUTS.find(p => p.value === key)?.label} <X className="h-3.5 w-3.5 text-green-700/60" aria-hidden="true" /><span className="sr-only">Bỏ nhu cầu này</span>
                 </button>
               ))}
               {state.budget && (
                 <button type="button" onClick={() => onChange({ budget: null, budgetTouched: true })} className={understoodCls} title="Bấm để bỏ">
-                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Ngân sách {formatBudgetLabel(state.budget)} <span aria-hidden="true" className="text-green-700/60">✕</span><span className="sr-only">Bỏ ngân sách này</span>
+                  <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> Ngân sách {formatBudgetLabel(state.budget)} <X className="h-3.5 w-3.5 text-green-700/60" aria-hidden="true" /><span className="sr-only">Bỏ ngân sách này</span>
                 </button>
               )}
             </div>
@@ -419,7 +571,7 @@ function AskMore({ state, onChange, onContinue }: {
       )}
 
       <div className="rounded-2xl border border-slate-200 p-5">
-        <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-[#C4480A]">Thêm một chút thông tin để AI tư vấn chính xác hơn</p>
+        <p className="text-sm font-semibold text-[#C4480A]">Thêm một chút thông tin để AI tư vấn chính xác hơn</p>
 
         {!chipsMode && (
         <div className="mt-4">
@@ -427,9 +579,10 @@ function AskMore({ state, onChange, onContinue }: {
           <div className="mt-2.5 flex flex-wrap gap-2.5">
             {PURPOSE_SHORTCUTS.map(opt => {
               const on = state.purposes.includes(opt.value as PurposeKey);
+              const Icon = PURPOSE_ICONS[opt.value as PurposeKey];
               return (
                 <button key={opt.value} type="button" aria-pressed={on} onClick={() => togglePurpose(opt.value as PurposeKey)} className={`${on ? choiceOn : choiceOff} flex items-center gap-2`}>
-                  <span aria-hidden="true">{opt.icon}</span>{opt.label}
+                  <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden="true" />{opt.label}
                 </button>
               );
             })}
@@ -439,7 +592,7 @@ function AskMore({ state, onChange, onContinue }: {
 
         {state.purposes.includes('gaming') && (
           <div className="mt-5 border-t border-dashed border-slate-200 pt-5">
-            <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-slate-500">Thêm cho máy chơi game <span className="font-semibold normal-case tracking-normal">(không bắt buộc)</span></p>
+            <p className="text-sm font-semibold text-slate-700">Thêm cho máy chơi game <span className="font-normal text-slate-500">(không bắt buộc)</span></p>
             <div className="mt-3 grid gap-5 lg:grid-cols-2">
               <div>
                 <p className="text-[15px] font-bold text-slate-900">Bạn hay chơi game nào?</p>
@@ -448,7 +601,7 @@ function AskMore({ state, onChange, onContinue }: {
                     <button key={name} type="button" aria-pressed={state.games.includes(name)} onClick={() => toggleGame(name)} className={state.games.includes(name) ? choiceOn : choiceOff}>{name}</button>
                   ))}
                   {state.games.filter(g => !(GAME_OPTIONS as readonly string[]).includes(g)).map(name => (
-                    <button key={name} type="button" aria-pressed="true" onClick={() => toggleGame(name)} className={choiceOn} title="Bấm để bỏ">{name} ✕</button>
+                    <button key={name} type="button" aria-pressed="true" onClick={() => toggleGame(name)} className={choiceOn} title="Bấm để bỏ">{name} <X className="ml-1 inline h-3.5 w-3.5 align-[-2px]" aria-hidden="true" /></button>
                   ))}
                 </div>
                 <div className="mt-3 flex items-center gap-2">
@@ -531,8 +684,9 @@ function formatMillions(value: number) {
   return `${(value / 1_000_000).toLocaleString('vi-VN', { maximumFractionDigits: 2 })} triệu`;
 }
 
-function ResultView({ loading = false, result, lastPrompt, onEdit, onRefine, onRebuild, onTransfer, onAddToCart, cartStatus, cartMsg }: {
+function ResultView({ loading = false, onCancelLoading, result, lastPrompt, onEdit, onRefine, onRebuild, onTransfer, onAddToCart, cartStatus, cartMsg }: {
   loading?: boolean;
+  onCancelLoading?: () => void;
   result: AiBuildPcResult;
   lastPrompt: string;
   onEdit: () => void;
@@ -567,7 +721,7 @@ function ResultView({ loading = false, result, lastPrompt, onEdit, onRefine, onR
 
       {!shortfall && (
         <p className="mb-8 text-xs text-gray-400">
-          Mặc định AI không đưa ra bản vượt ngân sách bạn nêu.
+          Bản Tiết kiệm và Tối ưu nằm trong hoặc sát ngân sách bạn nêu; bản Hiệu năng cao có thể cao hơn để bạn cân nhắc nâng cấp.
         </p>
       )}
 
@@ -587,12 +741,7 @@ function ResultView({ loading = false, result, lastPrompt, onEdit, onRefine, onR
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <div className="mx-auto max-w-5xl px-4 py-8">
-        {loading && (
-          <div role="status" className="mb-4 flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">
-            <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
-            AI đang dựng lại cấu hình, vui lòng đợi trong giây lát…
-          </div>
-        )}
+        {loading && <div className="mb-4"><BuildProgress rebuilding onCancel={onCancelLoading} /></div>}
         <div className={loading ? 'pointer-events-none opacity-60' : ''}>
         {/* Header */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -683,7 +832,7 @@ function ParsedRequirementsTags({ parsed }: { parsed: ParsedRequirements }) {
   if (parsed.games?.length) tags.push({ label: 'GAME', value: parsed.games.join(', ') });
   if (parsed.monitor) tags.push({ label: 'MÀN HÌNH', value: parsed.monitor });
   if (parsed.fps) tags.push({ label: 'FPS', value: `${parsed.fps} FPS` });
-  if (parsed.budget) tags.push({ label: 'NGÂN SÁCH', value: `Tối đa ${(parsed.budget / 1_000_000).toFixed(0)} triệu` });
+  if (parsed.budget) tags.push({ label: 'NGÂN SÁCH', value: `Khoảng ${(parsed.budget / 1_000_000).toFixed(0)} triệu` });
   if (parsed.preferences?.length) tags.push({ label: 'SỞ THÍCH', value: parsed.preferences.join(', ') });
 
   if (!tags.length) return null;
@@ -833,8 +982,13 @@ function TierDetail({ tier, tierIdx, result, onTransfer, onAddToCart, cartStatus
             </p>
             <h2 className="mb-3 text-lg font-bold sm:text-xl">{displayTitle}</h2>
 
-            {result.summary && (
-              <p className="mb-4 text-sm text-gray-500">{result.summary}</p>
+            {tier.description && (
+              <p className="mb-3 text-sm text-gray-600">{tier.description}</p>
+            )}
+            {result.summary && result.summary !== tier.description && (
+              <p className="mb-4 text-xs text-gray-400">
+                <span className="font-semibold">Nhận xét chung:</span> {result.summary}
+              </p>
             )}
 
             {/* Component list summary */}
@@ -994,7 +1148,7 @@ function CompatSection({ tier, result, showDetail, onToggle }: {
           {result.budget > 0 && (
             <span className="flex items-center gap-1.5 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-700">
               <CheckCircle2 className="h-4 w-4" />
-              Ngân sách tối đa {(result.budget / 1_000_000).toFixed(0)} triệu
+              Ngân sách khoảng {(result.budget / 1_000_000).toFixed(0)} triệu
             </span>
           )}
           {tier.totalPrice <= result.budget ? (

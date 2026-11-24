@@ -1,7 +1,7 @@
 // Đọc nhanh nhu cầu và ngân sách từ câu khách gõ ở trang AI Build PC, để biết còn thiếu gì thì hỏi thêm.
 // Chấp nhận gõ không dấu, gõ tắt và sai dấu thường gặp ("50 chiệu", "15tr", "30 củ").
 
-export type PurposeKey = 'gaming' | 'livestream' | 'dung-video' | 'ai-ml' | 'van-phong' | 'may-tram' | 'chung-khoan';
+export type PurposeKey = 'gaming' | 'livestream' | 'dung-video' | 'ai-ml' | 'van-phong' | 'hoc-tap' | 'may-tram' | 'chung-khoan';
 
 export type DetectedIntent = { purposes: PurposeKey[]; budget: number | null };
 
@@ -9,18 +9,19 @@ const normalize = (text: string) =>
   text.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
 
 const PURPOSE_PATTERNS: Array<[PurposeKey, RegExp]> = [
-  ['may-tram', /may tram|workstation|render nang|3d nang/],
+  ['may-tram', /may tram|workstation|render nang|3d nang|mo phong|solidworks|autocad|\bcad\b|\bcfd\b/],
   ['chung-khoan', /chung khoan|trade|nhieu man hinh/],
-  ['ai-ml', /machine learning|may hoc|deep learning|\bllm\b|chay ai|train ai|stable diffusion/],
-  ['dung-video', /dung video|edit video|premiere|after effects|davinci|photoshop|do hoa|thiet ke|render|sang tao noi dung|dung phim/],
-  ['livestream', /livestream|live stream|\bstream\b|phat truc tiep/],
-  ['van-phong', /van phong|office|hoc online|hoc tap|word|excel|ke toan|xem phim|lam viec|hoc sinh|sinh vien/],
-  ['gaming', /\bgame\b|gaming|choi game|valorant|lien minh|\blol\b|pubg|cs2|csgo|fps|fo4|fc online|gta|cyberpunk|black myth|genshin|dota|\bgem\b/],
+  ['ai-ml', /machine learning|may hoc|hoc may|deep learning|\bllm\b|chay ai|train ai|stable diffusion|mo hinh ai|ai cuc bo|local ai|ai local|lam ai|huan luyen|pytorch|tensorflow|keras|ollama|lm studio|fine.?tun|inference|data science|khoa hoc du lieu/],
+  ['dung-video', /dung video|edit video|premiere|after effects|davinci|photoshop|do hoa|thiet ke|render|sang tao noi dung|dung phim|blender|3ds max|maya|sketchup|lumion|zbrush|capcut|vegas|bien tap/],
+  ['livestream', /livestream|live stream|\bstream\b|phat truc tiep|\bobs\b/],
+  ['hoc-tap', /hoc tap|hoc online|hoc sinh|sinh vien|bai tap|do an|luan van|hoc ky/],
+  ['van-phong', /van phong|office|word|excel|ke toan|xem phim|lam viec|lap trinh|\bcode\b|coding|docker|vs ?code|may ao|doanh nghiep|cong ty/],
+  ['gaming', /\bgame\b|gaming|choi game|valorant|lien minh|\blol\b|pubg|cs2|csgo|fps|fo4|fc online|fifa|gta|cyberpunk|black myth|genshin|dota|\bgem\b|lien quan|toc chien|apex|fortnite|warzone|minecraft|elden ring|steam|esport|aoe/],
 ];
 
 export function detectBudget(prompt: string): number | null {
   const text = normalize(prompt);
-  const match = text.match(/(\d+(?:[.,]\d+)*)\s*(trieu|trjeu|chieu|tr|cu|ty)(?![a-z])/);
+  const match = text.match(/(\d+(?:[.,]\d+)*)\s*(trieu|trjeu|triu|treu|chieu|chiu|tr|cu|ty)(?![a-z])/);
   if (!match) return null;
   const raw = match[1];
   const value = /^\d+[.,]\d{1,2}$/.test(raw) ? parseFloat(raw.replace(',', '.')) : parseFloat(raw.replace(/[.,]/g, ''));

@@ -102,22 +102,27 @@ export type AiBuildPcResult = {
 
 // ── UI Constants ─────────────────────────────────────────────────────────────
 
-export const QUICK_SUGGESTIONS = [
-  'Chơi Valorant với Liên Minh, màn 2K 144Hz, tầm 25 triệu',
-  'Chơi game max setting, 10 triệu',
-  'Dựng video 4K bằng Premiere, ngân sách 40 triệu, thích case trắng',
-  'Máy cho con học online và xem phim, khoảng 12 triệu',
+// Gợi ý nhanh ở trang AI Build PC: 2 ca chơi game, 1 giải trí, 1 làm việc và học tập. Bấm vào chỉ điền câu vào ô nhập.
+export const QUICK_SUGGESTIONS: string[] = [
+  'Chơi Valorant, CS2 trên 240 FPS, màn Full HD, tầm 25 triệu',
+  'Chơi game AAA 2K như Wukong, Cyberpunk, dùng card RTX, khoảng 35 triệu',
+  'Xem phim, nghe nhạc, lướt web và chơi game nhẹ cuối tuần, tầm 20 triệu',
+  'Máy cho sinh viên học online, làm Word, Excel và lập trình nhẹ, tầm 20 triệu',
 ];
 
-export const PURPOSE_SHORTCUTS: { value: string; label: string; icon: string }[] = [
-  { value: 'gaming', label: 'Chơi game', icon: '🎮' },
-  { value: 'livestream', label: 'Livestream', icon: '📡' },
-  { value: 'dung-video', label: 'Sáng tạo nội dung', icon: '🎥' },
-  { value: 'ai-ml', label: 'AI & máy học', icon: '💡' },
-  { value: 'van-phong', label: 'Văn phòng', icon: '💼' },
-  { value: 'may-tram', label: 'Máy trạm', icon: '🖥️' },
-  { value: 'chung-khoan', label: 'Chứng khoán', icon: '📊' },
+export const PURPOSE_SHORTCUTS: { value: string; label: string }[] = [
+  { value: 'gaming', label: 'Chơi game' },
+  { value: 'livestream', label: 'Livestream' },
+  { value: 'dung-video', label: 'Đồ họa' },
+  { value: 'ai-ml', label: 'AI & máy học' },
+  { value: 'van-phong', label: 'Văn phòng' },
+  { value: 'hoc-tap', label: 'Học tập' },
+  { value: 'may-tram', label: 'Máy trạm' },
+  { value: 'chung-khoan', label: 'Chứng khoán' },
 ];
+
+// Các nút nhu cầu nhanh hiện ở trang chủ AI Build PC (theo thứ tự hiển thị); bảng hỏi thêm vẫn dùng đủ PURPOSE_SHORTCUTS.
+export const QUICK_NEED_KEYS = ['gaming', 'hoc-tap', 'van-phong', 'dung-video'] as const;
 
 export const PURPOSE_PROMPTS: Record<string, string> = {
   gaming: 'Máy chơi game, tầm 20 triệu',
@@ -125,6 +130,7 @@ export const PURPOSE_PROMPTS: Record<string, string> = {
   'dung-video': 'Máy dựng video, tầm 30 triệu',
   'ai-ml': 'Máy chạy AI và machine learning, tầm 40 triệu',
   'van-phong': 'Máy văn phòng, tầm 10 triệu',
+  'hoc-tap': 'Máy học tập, tầm 12 triệu',
   'may-tram': 'Máy trạm làm việc nặng, tầm 50 triệu',
   'chung-khoan': 'Máy chơi chứng khoán nhiều màn hình, tầm 15 triệu',
 };

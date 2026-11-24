@@ -121,6 +121,24 @@ body {
   }
 }
 
+/* Vệt sáng chạy ngang ở mép dưới khung "AI đang dựng" (trang AI Build PC). */
+@keyframes build-progress-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
+}
+
+.build-progress-sweep {
+  animation: build-progress-sweep 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .build-progress-sweep {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+
 /* Đồng hồ báo thức trên ruy băng khối sự kiện: rung lắc như đang reo (khoảng 0,7s) rồi nghỉ, lặp lại. */
 @keyframes event-alarm-ring {
   0%, 50%, 100% { transform: rotate(0deg) translateY(0); }

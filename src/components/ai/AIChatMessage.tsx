@@ -1,10 +1,12 @@
 'use client';
 
-import { AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import MascotAvatar from '@/components/layout/support-widget/MascotAvatar';
 import type { ChatMessage } from '@/types/ai.type';
 import { prepareCitationDisplay } from '@/lib/aiCitations';
+
+const BUILD_PC_AI_PATH = '/customer/build-pc/ai';
 
 function escapeHtml(s: string) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -68,6 +70,16 @@ export default function AIChatMessage({ message }: { message: ChatMessage }) {
             className="ai-reply-content break-words whitespace-pre-wrap [&_strong]:font-semibold"
             dangerouslySetInnerHTML={{ __html: formatAiReply(display.text) }}
           />
+        )}
+        {message.status === 'sent' && display.text.includes(BUILD_PC_AI_PATH) && (
+          <Link
+            href={BUILD_PC_AI_PATH}
+            prefetch={false}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+          >
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            Mở AI Build PC
+          </Link>
         )}
         {message.status === 'sent' && display.sources.length > 0 && (
           <details className="group mt-3 min-w-0 rounded-xl border border-primary-100 bg-white text-xs">
