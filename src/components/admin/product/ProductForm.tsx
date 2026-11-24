@@ -49,7 +49,9 @@ export default function ProductForm({ product, categories, brands, busy, error, 
   const [previews, setPreviews] = useState<{ file: File; url: string }[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [imageOrder, setImageOrder] = useState<number[]>((product?.images || []).map(image => image.id));
-  const [customSpecifications, setCustomSpecifications] = useState<{ id?: number; name: string; value: string; sortOrder: number }[]>(() => (product?.customSpecifications || []).map(item => ({ id: item.id, name: item.name, value: item.value, sortOrder: item.sortOrder })));
+  const [customSpecifications, setCustomSpecifications] = useState<{ id?: number; name: string; value: string; sortOrder: number; isHidden?: boolean }[]>(() => (product?.customSpecifications || []).map(item => ({ id: item.id, name: item.name, value: item.value, sortOrder: item.sortOrder, isHidden: item.isHidden })));
+  // Id các thuộc tính chuẩn đang bị ẩn khỏi trang chi tiết sản phẩm của khách (ô tích bỏ chọn).
+  const [hiddenAttributes, setHiddenAttributes] = useState<Set<number>>(() => new Set((product?.productAttributes || []).filter(item => item.isHidden).map(item => item.id)));
   const [attributes, setAttributes] = useState<CategoryBoundAttribute[]>([]);
   const [attributeInputs, setAttributeInputs] = useState<Record<number, string[]>>({});
   const [attributeLoading, setAttributeLoading] = useState(false);
@@ -175,8 +177,8 @@ export default function ProductForm({ product, categories, brands, busy, error, 
     const selectedCategory = categories.find(item => String(item.id) === category);
     const legacyCategory = category.startsWith('legacy:') ? category.slice('legacy:'.length) : '';
     const keptImageIds = imageOrder.filter(id => !removedImageIds.includes(id));
-    const productAttributes = attributes.map(attribute => ({ attributeId: attribute.id, ...(['SELECT', 'MULTI_SELECT'].includes(attribute.type) ? { attributeValueIds: (attributeInputs[attribute.id] || []).map(Number) } : { valueText: attributeInputs[attribute.id]?.[0] || null }) }));
-    Object.entries({ name, slug, category: selectedCategory?.name || legacyCategory || '', categoryId: selectedCategory?.id || '', brandId, description, price, originalPrice, costPrice, stockQuantity, lowStockThreshold, isActive: String(isActive), customSpecifications: JSON.stringify(customSpecifications.filter(spec => spec.name.trim() && spec.value.trim()).map((spec, sortOrder) => ({ name: spec.name.trim(), value: spec.value.trim(), sortOrder: spec.sortOrder ?? sortOrder }))), productAttributes: JSON.stringify(productAttributes), highlightSpecs: JSON.stringify(highlightText.split('\n').map(line => line.trim()).filter(Boolean).map((content, sortOrder) => ({ content, sortOrder }))), keepImageIds: JSON.stringify(keptImageIds), imageOrderIds: JSON.stringify(keptImageIds) }).forEach(([key, value]) => body.append(key, String(value)));
+    const productAttributes = attributes.map(attribute => ({ attributeId: attribute.id, isHidden: hiddenAttributes.has(attribute.id), ...(['SELECT', 'MULTI_SELECT'].includes(attribute.type) ? { attributeValueIds: (attributeInputs[attribute.id] || []).map(Number) } : { valueText: attributeInputs[attribute.id]?.[0] || null }) }));
+    Object.entries({ name, slug, category: selectedCategory?.name || legacyCategory || '', categoryId: selectedCategory?.id || '', brandId, description, price, originalPrice, costPrice, stockQuantity, lowStockThreshold, isActive: String(isActive), customSpecifications: JSON.stringify(customSpecifications.filter(spec => spec.name.trim() && spec.value.trim()).map((spec, sortOrder) => ({ name: spec.name.trim(), value: spec.value.trim(), sortOrder: spec.sortOrder ?? sortOrder, isHidden: Boolean(spec.isHidden) }))), productAttributes: JSON.stringify(productAttributes), highlightSpecs: JSON.stringify(highlightText.split('\n').map(line => line.trim()).filter(Boolean).map((content, sortOrder) => ({ content, sortOrder }))), keepImageIds: JSON.stringify(keptImageIds), imageOrderIds: JSON.stringify(keptImageIds) }).forEach(([key, value]) => body.append(key, String(value)));
     files.forEach(file => body.append('images', file));
     const initial = initialSectionIdsRef.current;
     const sectionsDiff = {
@@ -384,9 +386,19 @@ export default function ProductForm({ product, categories, brands, busy, error, 
                       const hasErr = requiredErrors.has(attribute.id);
                       const labelCls = `text-sm font-medium${hasErr ? ' text-red-700' : ''}`;
                       const fieldCls = `${inputCls}${hasErr ? ' border-red-400 ring-1 ring-red-300' : ''}`;
+                      const visible = !hiddenAttributes.has(attribute.id);
                       return (
-                        <label key={attribute.id} className={labelCls}>
-                          <span>
+                        <div key={attribute.id} className="relative">
+                        <input
+                          type="checkbox"
+                          checked={visible}
+                          onChange={() => setHiddenAttributes(current => { const next = new Set(current); if (next.has(attribute.id)) next.delete(attribute.id); else next.add(attribute.id); return next; })}
+                          aria-label={`Hiển thị ${attribute.name} ở trang khách`}
+                          title={visible ? 'Đang hiển thị ở trang khách. Bỏ tích để ẩn.' : 'Đang ẩn ở trang khách. Tích để hiện.'}
+                          className="absolute left-0 top-0.5 h-4 w-4 cursor-pointer accent-primary-600"
+                        />
+                        <label className={`${labelCls}${visible ? '' : ' opacity-60'}`}>
+                          <span className="block pl-6">
                             {attribute.name}
                             {attribute.isRequired && <span className="ml-0.5 text-red-500" aria-label="bắt buộc">*</span>}
                             {attribute.unit && <span className="ml-1 text-xs font-normal text-slate-400">({attribute.unit})</span>}
@@ -398,6 +410,7 @@ export default function ProductForm({ product, categories, brands, busy, error, 
                           {attribute.type === 'BOOLEAN' && <select value={attributeInputs[attribute.id]?.[0] || ''} onChange={event => { setAttributeInputs(c => ({ ...c, [attribute.id]: event.target.value ? [event.target.value] : [] })); if (hasErr) setRequiredErrors(e => { const n = new Set(e); n.delete(attribute.id); return n; }); }} className={fieldCls}><option value="">Chưa chọn</option><option value="true">Có</option><option value="false">Không</option></select>}
                           {hasErr && <p role="alert" className="mt-0.5 text-xs font-normal text-red-600">Trường này là bắt buộc.</p>}
                         </label>
+                        </div>
                       );
                     })}
                   </div>
@@ -426,7 +439,15 @@ export default function ProductForm({ product, categories, brands, busy, error, 
             ? <p className="text-xs text-slate-500">Chưa có thông số tự do.</p>
             : <ul className="space-y-2">
               {customSpecifications.map((spec, index) => (
-                <li key={index} className="grid grid-cols-1 items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_auto]">
+                <li key={index} className={`grid grid-cols-1 items-center gap-2 rounded-lg border border-slate-100 bg-slate-50 px-2 py-1.5 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,2fr)_auto]${spec.isHidden ? ' opacity-60' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={!spec.isHidden}
+                    onChange={() => setCustomSpecifications(current => current.map((item, idx) => idx === index ? { ...item, isHidden: !item.isHidden } : item))}
+                    aria-label="Hiển thị thông số này ở trang khách"
+                    title={spec.isHidden ? 'Đang ẩn ở trang khách. Tích để hiện.' : 'Đang hiển thị ở trang khách. Bỏ tích để ẩn.'}
+                    className="h-4 w-4 cursor-pointer accent-primary-600"
+                  />
                   <input aria-label="Tên thông số" placeholder="Tên" value={spec.name} onChange={event => setCustomSpecifications(current => current.map((item, idx) => idx === index ? { ...item, name: event.target.value } : item))} className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm" />
                   <input aria-label="Giá trị" placeholder="Giá trị" value={spec.value} onChange={event => setCustomSpecifications(current => current.map((item, idx) => idx === index ? { ...item, value: event.target.value } : item))} className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-sm" />
                   <div className="flex items-center gap-1">
