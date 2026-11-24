@@ -1,4 +1,4 @@
-const DEFAULT_MASCOT_SRC = '/assets/support-widget/mascot-avatar.png';
+const DEFAULT_MASCOT_SRC = '/assets/support-widget/mascot-avatar.png?v=3';
 
 // Nhân vật linh vật dùng chung cho nút nổi và mục "Chatbot AI" trong panel.
 // `src` cho phép Dashboard ghi đè bằng Avatar do Admin tải lên; rỗng/undefined

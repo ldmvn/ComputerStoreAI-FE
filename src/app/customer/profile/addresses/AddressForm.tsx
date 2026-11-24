@@ -177,8 +177,8 @@ export default function AddressForm({ initial, onSave, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
+      <div className="flex max-h-[90dvh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
 
         {/* Modal header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -302,7 +302,7 @@ export default function AddressForm({ initial, onSave, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-5 py-4">
+          <div className="sticky bottom-0 mt-auto flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-5 py-4">
             <button type="button" onClick={onClose}
               className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50">
               Hủy

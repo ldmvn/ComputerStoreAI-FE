@@ -893,7 +893,7 @@ export default function OrderDetailPage() {
 
       {/* ── Address change modal ── */}
       {showAddressModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={e => { if (e.target === e.currentTarget) setShowAddressModal(false); }}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={e => { if (e.target === e.currentTarget) setShowAddressModal(false); }}>
           <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <h3 className="text-sm font-semibold text-slate-800">Chọn địa chỉ giao hàng</h3>
@@ -975,7 +975,7 @@ export default function OrderDetailPage() {
 
       {/* ── Payment method change modal ── */}
       {showMethodModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={e => { if (e.target === e.currentTarget) setShowMethodModal(false); }}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={e => { if (e.target === e.currentTarget) setShowMethodModal(false); }}>
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
               <h3 className="text-sm font-semibold text-slate-800">Đổi phương thức thanh toán</h3>

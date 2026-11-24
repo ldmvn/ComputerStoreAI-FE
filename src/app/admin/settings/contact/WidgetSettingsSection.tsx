@@ -252,7 +252,6 @@ export default function WidgetSettingsSection({
   }
 
   function handleUpload(channel: WidgetMediaChannel, settingKey: string, file: File) {
-    if (!token) return;
     setUploadingChannel(channel);
     uploadWidgetMedia(token, channel, file)
       .then(({ url }) => {
@@ -265,7 +264,6 @@ export default function WidgetSettingsSection({
   }
 
   function handleResetMedia(channel: WidgetMediaChannel, settingKey: string) {
-    if (!token) return;
     setUploadingChannel(channel);
     deleteWidgetMedia(token, channel)
       .then(() => {
